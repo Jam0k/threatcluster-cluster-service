@@ -1,0 +1,481 @@
+# RSS Feed Configuration
+# Categories: cybersecurity, general_news
+# Credibility: 1-100 (higher is more credible)
+
+feeds:
+  # High-credibility cybersecurity sources
+  - url: "https://krebsonsecurity.com/feed/"
+    name: "Krebs on Security"
+    category: "cybersecurity"
+    credibility: 90
+    is_active: true
+
+  - url: "https://www.bleepingcomputer.com/feed/"
+    name: "BleepingComputer"
+    category: "cybersecurity"
+    credibility: 85
+    is_active: true
+
+  - url: "https://www.securityweek.com/feed/"
+    name: "SecurityWeek"
+    category: "cybersecurity"
+    credibility: 85
+    is_active: true
+
+  - url: "https://darkreading.com/rss.xml"
+    name: "Dark Reading"
+    category: "cybersecurity"
+    credibility: 85
+    is_active: true
+
+  - url: "https://www.theregister.com/security/cyber_crime/headlines.atom"
+    name: "The Register Security"
+    category: "cybersecurity"
+    credibility: 80
+    is_active: true
+
+  - url: "https://arstechnica.com/tag/security/feed/"
+    name: "Ars Technica Security"
+    category: "cybersecurity"
+    credibility: 80
+    is_active: true
+
+  - url: "https://hackread.com/feed/"
+    name: "Hackread"
+    category: "cybersecurity"
+    credibility: 70
+    is_active: true
+
+  - url: "https://www.techrepublic.com/rssfeeds/topic/security/?feedType=rssfeeds"
+    name: "TechRepublic Security"
+    category: "cybersecurity"
+    credibility: 75
+    is_active: true
+
+  - url: "https://blog.0patch.com/feeds/posts/default"
+    name: "0patch Blog"
+    category: "cybersecurity"
+    credibility: 80
+    is_active: true
+
+  - url: "https://securityonline.info/feed/"
+    name: "Security Online"
+    category: "cybersecurity"
+    credibility: 70
+    is_active: true
+
+  - url: "https://gbhackers.com/feed/"
+    name: "GB Hackers"
+    category: "cybersecurity"
+    credibility: 65
+    is_active: true
+
+  - url: "https://thecyberexpress.com/feed/"
+    name: "The Cyber Express"
+    category: "cybersecurity"
+    credibility: 70
+    is_active: true
+
+  - url: "https://cybersecuritynews.com/feed/"
+    name: "Cybersecurity News"
+    category: "cybersecurity"
+    credibility: 70
+    is_active: true
+
+  - url: "https://seclists.org/rss/fulldisclosure.rss"
+    name: "Full Disclosure"
+    category: "cybersecurity"
+    credibility: 75
+    is_active: true
+
+  # Threat Intelligence Sources
+  - url: "https://unit42.paloaltonetworks.com/feed/"
+    name: "Palo Alto Unit 42"
+    category: "cybersecurity"
+    credibility: 95
+    is_active: true
+
+  - url: "https://securelist.com/feed/"
+    name: "Kaspersky Securelist"
+    category: "cybersecurity"
+    credibility: 90
+    is_active: true
+
+  - url: "https://blog.malwarebytes.com/feed"
+    name: "Malwarebytes Labs"
+    category: "cybersecurity"
+    credibility: 85
+    is_active: true
+
+  - url: "https://news.sophos.com/en-us/feed"
+    name: "Sophos News"
+    category: "cybersecurity"
+    credibility: 85
+    is_active: true
+
+  - url: "https://www.welivesecurity.com/feed"
+    name: "ESET WeLiveSecurity"
+    category: "cybersecurity"
+    credibility: 85
+    is_active: true
+
+  - url: "https://www.mandiant.com/resources/blog/rss.xml"
+    name: "Mandiant Threat Intelligence"
+    category: "cybersecurity"
+    credibility: 95
+    is_active: true
+
+  - url: "https://www.crowdstrike.com/blog/feed/"
+    name: "CrowdStrike Blog"
+    category: "cybersecurity"
+    credibility: 90
+    is_active: true
+
+  - url: "https://threatpost.com/feed/"
+    name: "Threatpost"
+    category: "cybersecurity"
+    credibility: 80
+    is_active: true
+
+  - url: "https://feeds.feedburner.com/TheHackersNews"
+    name: "The Hacker News"
+    category: "cybersecurity"
+    credibility: 75
+    is_active: true
+
+  - url: "https://blog.checkpoint.com/feed/"
+    name: "Check Point Blog"
+    category: "cybersecurity"
+    credibility: 85
+    is_active: true
+
+  - url: "https://blog.talosintelligence.com/rss/"
+    name: "Cisco Talos Intelligence"
+    category: "cybersecurity"
+    credibility: 90
+    is_active: true
+
+  - url: "https://blog.rapid7.com/rss/"
+    name: "Rapid7 Blog"
+    category: "cybersecurity"
+    credibility: 85
+    is_active: true
+
+  - url: "https://www.proofpoint.com/us/rss.xml"
+    name: "Proofpoint"
+    category: "cybersecurity"
+    credibility: 85
+    is_active: true
+
+  - url: "https://blog.qualys.com/feed"
+    name: "Qualys Blog"
+    category: "cybersecurity"
+    credibility: 85
+    is_active: true
+
+  - url: "https://www.recordedfuture.com/feed"
+    name: "Recorded Future"
+    category: "cybersecurity"
+    credibility: 90
+    is_active: true
+
+  - url: "https://www.sentinelone.com/feed/"
+    name: "SentinelOne"
+    category: "cybersecurity"
+    credibility: 85
+    is_active: true
+
+  - url: "https://malpedia.caad.fkie.fraunhofer.de/feeds/rss/latest"
+    name: "Malpedia Latest"
+    category: "cybersecurity"
+    credibility: 90
+    is_active: true
+
+  # Security Analysis and Research
+  - url: "https://www.schneier.com/blog/atom.xml"
+    name: "Schneier on Security"
+    category: "cybersecurity"
+    credibility: 95
+    is_active: true
+
+  - url: "https://grahamcluley.com/feed"
+    name: "Graham Cluley"
+    category: "cybersecurity"
+    credibility: 85
+    is_active: true
+
+  - url: "https://nao-sec.org/feed"
+    name: "NAO Security"
+    category: "cybersecurity"
+    credibility: 80
+    is_active: true
+
+  - url: "https://citizenlab.ca/feed/"
+    name: "Citizen Lab"
+    category: "cybersecurity"
+    credibility: 90
+    is_active: true
+
+  - url: "https://blog.mozilla.org/security/feed/"
+    name: "Mozilla Security Blog"
+    category: "cybersecurity"
+    credibility: 85
+    is_active: true
+
+  - url: "https://github.blog/security/vulnerability-research/feed/"
+    name: "GitHub Security Research"
+    category: "cybersecurity"
+    credibility: 90
+    is_active: true
+
+  # Government and Official Sources
+  - url: "https://www.ncsc.gov.uk/api/1/services/v1/all-rss-feed.xml"
+    name: "UK NCSC"
+    category: "cybersecurity"
+    credibility: 95
+    is_active: true
+
+  - url: "https://www.us-cert.gov/ncas/current-activity.xml"
+    name: "US-CERT Current Activity"
+    category: "cybersecurity"
+    credibility: 95
+    is_active: true
+
+  - url: "https://api.msrc.microsoft.com/update-guide/rss"
+    name: "Microsoft Security Response Center"
+    category: "cybersecurity"
+    credibility: 90
+    is_active: true
+
+  - url: "https://www.ic3.gov/CSA/RSS"
+    name: "FBI IC3 Cyber Security Alerts"
+    category: "cybersecurity"
+    credibility: 95
+    is_active: true
+
+  - url: "https://digital.nhs.uk/feed/cyber-alerts-feed.xml"
+    name: "NHS Digital Cyber Alerts"
+    category: "cybersecurity"
+    credibility: 90
+    is_active: true
+
+  - url: "https://www.ncsc.gov.uk/api/1/services/v1/news-rss-feed.xml"
+    name: "UK NCSC News"
+    category: "cybersecurity"
+    credibility: 95
+    is_active: true
+
+  # Cloud Security
+  - url: "https://www.wiz.io/api/feed/cloud-threat-landscape/rss.xml"
+    name: "Wiz Cloud Threat Landscape"
+    category: "cybersecurity"
+    credibility: 85
+    is_active: true
+
+  - url: "https://aws.amazon.com/blogs/security/feed/"
+    name: "AWS Security Blog"
+    category: "cybersecurity"
+    credibility: 90
+    is_active: true
+
+  - url: "https://blog.cloudflare.com/rss"
+    name: "Cloudflare Blog"
+    category: "cybersecurity"
+    credibility: 85
+    is_active: true
+
+  - url: "https://blog.aquasec.com/rss.xml"
+    name: "Aqua Security Blog"
+    category: "cybersecurity"
+    credibility: 80
+    is_active: true
+
+  # Vulnerability Disclosure
+  - url: "https://seclists.org/rss/oss-sec.rss"
+    name: "OSS Security"
+    category: "cybersecurity"
+    credibility: 80
+    is_active: true
+
+  - url: "https://seclists.org/rss/nanog.rss"
+    name: "NANOG"
+    category: "cybersecurity"
+    credibility: 75
+    is_active: true
+
+  - url: "https://www.cisecurity.org/feed/advisories"
+    name: "CIS Security Advisories"
+    category: "cybersecurity"
+    credibility: 85
+    is_active: true
+
+  - url: "https://www.tenable.com/blog/cyber-exposure-alerts/feed"
+    name: "Tenable Cyber Exposure Alerts"
+    category: "cybersecurity"
+    credibility: 85
+    is_active: true
+
+  - url: "https://www.tenable.com/security/research/feed"
+    name: "Tenable Security Research"
+    category: "cybersecurity"
+    credibility: 85
+    is_active: true
+
+  # FortiGuard Intelligence
+  - url: "https://filestore.fortinet.com/fortiguard/rss/outbreakalert.xml"
+    name: "FortiGuard Outbreak Alerts"
+    category: "cybersecurity"
+    credibility: 85
+    is_active: true
+
+  - url: "https://filestore.fortinet.com/fortiguard/rss/threatsignal.xml"
+    name: "FortiGuard Threat Signal"
+    category: "cybersecurity"
+    credibility: 85
+    is_active: true
+
+  - url: "https://www.f5.com/labs/rss-feeds/all.xml"
+    name: "F5 Labs"
+    category: "cybersecurity"
+    credibility: 80
+    is_active: true
+
+  # Additional Security News
+  - url: "https://securitybrief.co.uk/feed"
+    name: "Security Brief UK"
+    category: "cybersecurity"
+    credibility: 70
+    is_active: true
+
+  - url: "https://www.cybersecuritydive.com/feeds/news/"
+    name: "Cybersecurity Dive"
+    category: "cybersecurity"
+    credibility: 75
+    is_active: true
+
+  - url: "https://www.finextra.com/rss/channel.aspx?channel=security"
+    name: "Finextra Security"
+    category: "cybersecurity"
+    credibility: 75
+    is_active: true
+
+  - url: "https://www.msspalert.com/feed/topic/latest"
+    name: "MSSP Alert"
+    category: "cybersecurity"
+    credibility: 70
+    is_active: true
+
+  - url: "https://www.databreachtoday.co.uk/rss-feeds"
+    name: "Data Breach Today UK"
+    category: "cybersecurity"
+    credibility: 75
+    is_active: true
+
+  - url: "https://www.csoonline.com/feed/"
+    name: "CSO Online"
+    category: "cybersecurity"
+    credibility: 80
+    is_active: true
+
+  - url: "https://www.itpro.com/uk/feeds/tag/security"
+    name: "IT Pro Security"
+    category: "cybersecurity"
+    credibility: 75
+    is_active: true
+
+  - url: "https://cyberscoop.com/feed/"
+    name: "CyberScoop"
+    category: "cybersecurity"
+    credibility: 80
+    is_active: true
+
+  - url: "https://www.itnews.com.au/RSS/rss.ashx?type=Category&ID=32"
+    name: "IT News Security"
+    category: "cybersecurity"
+    credibility: 70
+    is_active: true
+
+  - url: "https://www.computerweekly.com/rss/IT-security.xml"
+    name: "Computer Weekly IT Security"
+    category: "cybersecurity"
+    credibility: 75
+    is_active: true
+
+  # General Technology News (for context)
+  - url: "https://feeds.bbci.co.uk/news/technology/rss.xml"
+    name: "BBC Technology"
+    category: "general_news"
+    credibility: 90
+    is_active: true
+
+  - url: "https://feeds.skynews.com/feeds/rss/technology.xml"
+    name: "Sky News Technology"
+    category: "general_news"
+    credibility: 85
+    is_active: true
+
+  - url: "https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml"
+    name: "NY Times Technology"
+    category: "general_news"
+    credibility: 90
+    is_active: true
+
+  - url: "https://techcrunch.com/feed"
+    name: "TechCrunch"
+    category: "general_news"
+    credibility: 80
+    is_active: true
+
+  - url: "https://www.theverge.com/rss/index.xml"
+    name: "The Verge"
+    category: "general_news"
+    credibility: 80
+    is_active: true
+
+  - url: "https://www.wired.com/feed/rss"
+    name: "Wired"
+    category: "general_news"
+    credibility: 85
+    is_active: true
+
+  - url: "https://engadget.com/rss.xml"
+    name: "Engadget"
+    category: "general_news"
+    credibility: 75
+    is_active: true
+
+  - url: "https://www.theguardian.com/uk/technology/rss"
+    name: "Guardian Technology"
+    category: "general_news"
+    credibility: 85
+    is_active: true
+
+  - url: "https://arstechnica.com/feed"
+    name: "Ars Technica"
+    category: "general_news"
+    credibility: 85
+    is_active: true
+
+  - url: "https://feed.infoq.com/"
+    name: "InfoQ"
+    category: "general_news"
+    credibility: 75
+    is_active: true
+
+  - url: "https://www.firstpost.com/commonfeeds/v1/mfp/rss/tech.xml"
+    name: "Firstpost Tech"
+    category: "general_news"
+    credibility: 70
+    is_active: true
+
+  - url: "https://devclass.com/feed/"
+    name: "DevClass"
+    category: "general_news"
+    credibility: 70
+    is_active: true
+
+  - url: "https://decrypt.co/feed"
+    name: "Decrypt"
+    category: "general_news"
+    credibility: 70
+    is_active: true

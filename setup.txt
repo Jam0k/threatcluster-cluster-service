@@ -1,0 +1,5 @@
+### Must be within the cluster-service dir ###
+
+python3 -m tests.test_db - Tests DB connection with pyscopg3. Use the .env file to specify DB. 
+python3 -m src.database.sql.import_feeds - Import RSS feeds into rss_feeds table within the cluster_data schema. 
+

@@ -1,0 +1,20 @@
+severity_keywords:
+  zero-day: 100
+  critical_vulnerability: 95
+  data_breach: 90
+  nation_state: 85
+  supply_chain_attack: 90
+
+attack_type_keywords:
+  ransomware: 95
+  phishing: 70
+  malware: 65
+  ddos: 60
+  insider_threat: 80
+
+asset_keywords:
+  infrastructure: 85
+  healthcare: 80
+  financial: 80
+  government: 90
+  critical_infrastructure: 95

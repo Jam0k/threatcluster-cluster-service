@@ -1,0 +1,71 @@
+# Pipeline Configuration
+pipeline:
+  fetch_interval_hours: 1
+  processing_batch_size: 100
+  max_concurrent_scrapes: 5
+  
+# Cybersecurity Filter Keywords
+security_keywords:
+  - cybersecurity
+  - malware
+  - ransomware
+  - phishing
+  - breach
+  - vulnerability
+  - exploit
+  - attack
+  - threat
+  - hacker
+  - security
+  - CVE
+  - zero-day
+  - APT
+  - botnet
+
+# Semantic Clustering
+clustering:
+  model_name: "sentence-transformers/all-mpnet-base-v2"
+  similarity_threshold: 0.75
+  min_cluster_size: 2
+  max_cluster_size: 12
+  time_window_hours: 72
+  coherence_threshold: 0.65
+  batch_size: 50
+
+# Entity Extraction
+entities:
+  regex_patterns:
+    cve: 'CVE-\d{4}-\d{4,}'
+    file_hash_md5: '[a-fA-F0-9]{32}'
+    file_hash_sha1: '[a-fA-F0-9]{40}'
+    file_hash_sha256: '[a-fA-F0-9]{64}'
+    ip_address: '\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b'
+    domain: '[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}'
+  
+  dynamic_weights:
+    cve: 80
+    file_hash: 60
+    ip_address: 55
+    domain: 50
+
+# Ranking Algorithm
+ranking:
+  weights:
+    recency: 0.20
+    source_credibility: 0.30
+    entity_importance: 0.30
+    keyword_severity: 0.20
+  
+  recency_decay_hours: 24
+
+# Web Scraping
+scraping:
+  timeout_seconds: 30
+  max_retries: 3
+  rate_limit_delay: 1.0
+  user_agent: "ThreatCluster/1.0 (+https://threatcluster.io/helper)"
+
+# Monitoring
+monitoring:
+  health_check_port: 8080
+  metrics_retention_days: 30
