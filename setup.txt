@@ -3,3 +3,8 @@
 python3 -m tests.test_db - Tests DB connection with pyscopg3. Use the .env file to specify DB. 
 python3 -m src.database.sql.import_feeds - Import RSS feeds into rss_feeds table within the cluster_data schema. 
 
+  # Run one-time fetch
+  python -m src.feeds.scheduler --once
+  # Run as daemon
+  python -m src.feeds.scheduler
+

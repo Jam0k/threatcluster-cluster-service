@@ -3,6 +3,7 @@ pipeline:
   fetch_interval_hours: 1
   processing_batch_size: 100
   max_concurrent_scrapes: 5
+  time_window_hours: 72
   
 # Cybersecurity Filter Keywords
 security_keywords:
