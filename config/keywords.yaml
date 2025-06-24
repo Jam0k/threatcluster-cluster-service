@@ -1,20 +1,294 @@
+# Keyword Severity Weights for Article Ranking
+# Weight scale: 1-100 (higher = more severe/important)
+
 severity_keywords:
+  # Critical severity (90-100)
   zero-day: 100
+  0-day: 100
+  zero_day: 100
   critical_vulnerability: 95
+  critical_flaw: 95
+  emergency_patch: 95
+  actively_exploited: 95
+  under_active_attack: 95
+  widespread_exploitation: 95
+  
+  # High severity (80-89)
   data_breach: 90
-  nation_state: 85
   supply_chain_attack: 90
+  supply-chain_attack: 90
+  mass_exploitation: 88
+  wormable: 88
+  remote_code_execution: 88
+  rce: 88
+  unauthenticated_rce: 90
+  privilege_escalation: 85
+  nation_state: 85
+  nation-state: 85
+  apt_campaign: 85
+  targeted_attack: 85
+  
+  # Medium-high severity (70-79)
+  ransomware_attack: 80
+  data_leak: 78
+  data_theft: 78
+  credential_theft: 78
+  authentication_bypass: 78
+  security_bypass: 75
+  patch_now: 75
+  urgent_update: 75
+  high_severity: 75
+  confirmed_compromise: 75
+  active_campaign: 75
+  
+  # Medium severity (60-69)
+  vulnerability_disclosed: 70
+  new_vulnerability: 70
+  unpatched: 68
+  proof_of_concept: 65
+  poc_available: 65
+  exploit_available: 68
+  security_update: 65
+  security_advisory: 65
+  incident_response: 65
+  breach_notification: 65
 
 attack_type_keywords:
+  # Ransomware (90-100)
   ransomware: 95
-  phishing: 70
-  malware: 65
-  ddos: 60
+  ransomware_attack: 98
+  ransomware_gang: 95
+  ransomware_group: 95
+  double_extortion: 95
+  file_encryption: 90
+  ransom_demand: 90
+  ransomware_deployment: 92
+  
+  # Advanced attacks (80-89)
+  supply_chain: 90
+  watering_hole: 85
+  spear_phishing: 85
+  spear-phishing: 85
+  whaling: 85
   insider_threat: 80
+  lateral_movement: 80
+  living_off_the_land: 80
+  fileless_malware: 82
+  advanced_persistent_threat: 85
+  apt: 85
+  
+  # Common attacks (70-79)
+  malware: 75
+  trojan: 75
+  backdoor: 78
+  rootkit: 78
+  botnet: 75
+  command_and_control: 75
+  c2: 75
+  c&c: 75
+  phishing: 70
+  phishing_campaign: 72
+  phishing_attack: 72
+  social_engineering: 70
+  
+  # Network attacks (60-69)
+  ddos: 65
+  ddos_attack: 68
+  distributed_denial_of_service: 68
+  brute_force: 65
+  brute-force: 65
+  password_spray: 65
+  credential_stuffing: 68
+  man_in_the_middle: 70
+  mitm: 70
+  
+  # Web attacks (60-69)
+  sql_injection: 68
+  sqli: 68
+  cross_site_scripting: 65
+  xss: 65
+  remote_file_inclusion: 68
+  rfi: 68
+  local_file_inclusion: 65
+  lfi: 65
+  xxe: 65
+  xml_external_entity: 65
+  
+  # Other attacks
+  cryptojacking: 60
+  cryptomining: 60
+  data_exfiltration: 75
+  espionage: 75
+  cyber_espionage: 78
+  hacktivism: 60
+  defacement: 55
 
 asset_keywords:
-  infrastructure: 85
-  healthcare: 80
-  financial: 80
-  government: 90
+  # Critical infrastructure (90-100)
   critical_infrastructure: 95
+  power_grid: 95
+  electric_grid: 95
+  water_system: 95
+  nuclear: 98
+  nuclear_facility: 98
+  dam: 90
+  energy_sector: 90
+  
+  # Government (85-95)
+  government: 90
+  federal_government: 92
+  military: 95
+  defense: 95
+  intelligence_agency: 95
+  classified: 95
+  national_security: 95
+  election: 90
+  voting_system: 92
+  
+  # Healthcare (80-90)
+  healthcare: 85
+  hospital: 88
+  medical: 85
+  patient_data: 88
+  medical_records: 88
+  health_records: 88
+  pharmaceutical: 85
+  vaccine: 85
+  medical_device: 88
+  
+  # Financial (80-90)
+  financial: 85
+  banking: 88
+  bank: 88
+  financial_services: 85
+  payment: 85
+  payment_processor: 88
+  credit_card: 85
+  cryptocurrency: 80
+  crypto_exchange: 82
+  trading: 80
+  stock_exchange: 90
+  
+  # Technology (70-85)
+  technology: 75
+  software: 70
+  cloud: 75
+  cloud_provider: 80
+  saas: 75
+  iaas: 75
+  paas: 75
+  hosting_provider: 78
+  cdn: 75
+  isp: 78
+  telecommunications: 82
+  telecom: 82
+  
+  # Other sectors (70-80)
+  manufacturing: 75
+  retail: 72
+  education: 72
+  university: 72
+  transportation: 80
+  aviation: 85
+  maritime: 82
+  logistics: 75
+  media: 70
+  legal: 75
+  law_firm: 78
+
+impact_keywords:
+  # Data impact (80-100)
+  million_records: 95
+  billion_records: 100
+  personally_identifiable_information: 90
+  pii: 90
+  personal_data: 85
+  sensitive_data: 88
+  confidential_data: 88
+  classified_information: 95
+  trade_secrets: 85
+  intellectual_property: 85
+  
+  # Business impact (70-90)
+  business_disruption: 85
+  operational_disruption: 85
+  service_outage: 80
+  downtime: 75
+  system_shutdown: 80
+  production_halt: 85
+  revenue_loss: 80
+  financial_loss: 82
+  ransom_paid: 88
+  
+  # Geographic impact (60-80)
+  worldwide: 80
+  global: 80
+  nationwide: 75
+  statewide: 70
+  citywide: 65
+  multiple_countries: 78
+  cross_border: 75
+
+threat_actor_keywords:
+  # Nation state (85-100)
+  china: 85
+  russia: 90
+  north_korea: 92
+  iran: 88
+  nation_state_actor: 90
+  state_sponsored: 90
+  apt: 85
+  advanced_persistent_threat: 85
+  
+  # Known groups (80-95)
+  lazarus: 90
+  apt28: 88
+  apt29: 88
+  fancy_bear: 88
+  cozy_bear: 88
+  equation_group: 90
+  carbanak: 85
+  fin7: 85
+  cobalt_group: 85
+  
+  # Ransomware groups (85-95)
+  lockbit: 90
+  alphv: 88
+  blackcat: 88
+  clop: 88
+  conti: 85
+  revil: 88
+  darkside: 85
+  doppelpaymer: 85
+  maze: 85
+  ryuk: 88
+  
+  # Other actors (70-80)
+  cybercriminal: 75
+  hacker_group: 75
+  hacktivist: 70
+  insider: 80
+  malicious_insider: 85
+  organized_crime: 80
+
+urgency_keywords:
+  # Immediate action (90-100)
+  patch_immediately: 100
+  emergency_patch: 98
+  exploit_in_the_wild: 95
+  active_exploitation: 95
+  mass_exploitation: 95
+  
+  # High urgency (80-89)
+  patch_now: 90
+  update_now: 90
+  urgent_security_update: 88
+  critical_update: 88
+  immediate_action_required: 90
+  
+  # Medium urgency (70-79)
+  patch_available: 75
+  update_available: 75
+  mitigation_available: 78
+  workaround_available: 72
+  action_required: 75

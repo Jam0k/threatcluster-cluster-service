@@ -107,6 +107,49 @@ CREATE INDEX idx_clusters_is_active ON cluster_data.clusters(clusters_is_active)
 CREATE INDEX idx_clusters_created_at ON cluster_data.clusters(clusters_created_at);
 CREATE INDEX idx_article_rankings_score ON cluster_data.article_rankings(article_rankings_score DESC);
 CREATE INDEX idx_article_rankings_clean_id ON cluster_data.article_rankings(article_rankings_clean_id);
+
+-- Ranking Views
+-- View for cluster rankings (dynamically calculated from article rankings)
+CREATE VIEW cluster_data.cluster_rankings AS
+SELECT 
+    c.clusters_id,
+    c.clusters_name,
+    c.clusters_summary,
+    c.clusters_created_at,
+    COUNT(ar.article_rankings_id) as article_count,
+    AVG(ar.article_rankings_score)::NUMERIC(5,2) as avg_article_score,
+    c.clusters_coherence_score,
+    -- Weighted cluster score: 70% avg article score + 30% coherence
+    ROUND((AVG(ar.article_rankings_score) * 0.7 + c.clusters_coherence_score * 100 * 0.3))::INTEGER as cluster_score
+FROM cluster_data.clusters c
+JOIN cluster_data.article_rankings ar ON ar.article_rankings_cluster_id = c.clusters_id
+WHERE c.clusters_is_active = true
+GROUP BY c.clusters_id, c.clusters_name, c.clusters_summary, c.clusters_coherence_score, c.clusters_created_at
+ORDER BY cluster_score DESC;
+
+-- View for articles with their rankings and cluster information
+CREATE VIEW cluster_data.articles_with_rankings AS
+SELECT 
+    rfc.rss_feeds_clean_id,
+    rfc.rss_feeds_clean_title->>'title' as article_title,
+    rf.rss_feeds_name as source_name,
+    rf.rss_feeds_credibility as source_credibility,
+    ar.article_rankings_score,
+    ar.article_rankings_factors,
+    ar.article_rankings_cluster_id,
+    c.clusters_name,
+    rfr.rss_feeds_raw_published_date as published_date,
+    ar.article_rankings_ranked_at as ranked_at,
+    -- Extract key ranking factors for easy filtering
+    (ar.article_rankings_factors->>'recency_score')::NUMERIC as recency_score,
+    (ar.article_rankings_factors->>'entity_importance')::NUMERIC as entity_score,
+    (ar.article_rankings_factors->>'keyword_severity')::NUMERIC as keyword_score
+FROM cluster_data.article_rankings ar
+JOIN cluster_data.rss_feeds_clean rfc ON ar.article_rankings_clean_id = rfc.rss_feeds_clean_id
+JOIN cluster_data.rss_feeds_raw rfr ON rfc.rss_feeds_clean_raw_id = rfr.rss_feeds_raw_id
+JOIN cluster_data.rss_feeds rf ON rfr.rss_feeds_raw_feed_id = rf.rss_feeds_id
+LEFT JOIN cluster_data.clusters c ON ar.article_rankings_cluster_id = c.clusters_id
+ORDER BY ar.article_rankings_score DESC;
 CREATE INDEX idx_keyword_weights_category ON cluster_data.keyword_weights(keyword_weights_category);
 
 -- Comments for documentation
@@ -120,28 +163,3 @@ COMMENT ON TABLE cluster_data.clusters IS 'Semantic clusters of related articles
 COMMENT ON TABLE cluster_data.cluster_articles IS 'Many-to-many relationship between clusters and articles';
 COMMENT ON TABLE cluster_data.article_rankings IS 'Final ranking scores for articles and clusters';
 
--- Create a view for easy article querying
-CREATE VIEW cluster_data.articles_with_rankings AS
-SELECT 
-    rfc.rss_feeds_clean_id,
-    rfc.rss_feeds_clean_title,
-    rfc.rss_feeds_clean_content,
-    rfc.rss_feeds_clean_images,
-    rfc.rss_feeds_clean_extracted_entities,
-    rfc.rss_feeds_clean_created_at,
-    rfr.rss_feeds_raw_published_date,
-    rf.rss_feeds_name,
-    rf.rss_feeds_credibility,
-    ar.article_rankings_score,
-    ar.article_rankings_factors,
-    c.clusters_id,
-    c.clusters_name,
-    c.clusters_coherence_score
-FROM cluster_data.rss_feeds_clean rfc
-JOIN cluster_data.rss_feeds_raw rfr ON rfc.rss_feeds_clean_raw_id = rfr.rss_feeds_raw_id
-JOIN cluster_data.rss_feeds rf ON rfr.rss_feeds_raw_feed_id = rf.rss_feeds_id
-LEFT JOIN cluster_data.article_rankings ar ON rfc.rss_feeds_clean_id = ar.article_rankings_clean_id
-LEFT JOIN cluster_data.cluster_articles ca ON rfc.rss_feeds_clean_id = ca.cluster_articles_clean_id
-LEFT JOIN cluster_data.clusters c ON ca.cluster_articles_cluster_id = c.clusters_id AND c.clusters_is_active = true;
-
-COMMENT ON VIEW cluster_data.articles_with_rankings IS 'Consolidated view of articles with rankings and cluster information';
