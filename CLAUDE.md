@@ -305,3 +305,32 @@ If you encounter "value too long for type character varying" errors:
    ```
 2. The entity extractor will automatically truncate entities longer than 500 characters
 3. File paths and registry keys keep the end (most specific part) when truncated
+
+## Semantic Clustering
+
+The semantic clustering system groups related security articles using AI-powered similarity analysis. See [CLUSTERING.md](CLUSTERING.md) for detailed documentation.
+
+### Quick Start
+
+```bash
+# Run clustering once on recent articles
+python -m src.clustering.cluster_scheduler --once
+
+# Run with extended time window (2 weeks)
+python -m src.clustering.cluster_scheduler --once --full
+
+# Run as daemon (checks every 30 minutes)
+python -m src.clustering.cluster_scheduler
+
+# View clustering results
+python -m tests.test_cluster_report
+```
+
+### Key Features
+
+- Uses sentence transformers (all-mpnet-base-v2) for semantic embeddings
+- Implements DBSCAN and Agglomerative clustering algorithms
+- Detects and prevents duplicate clusters
+- Generates meaningful cluster names from extracted entities
+- Validates clusters based on coherence, size, and time windows
+- Supports batch processing for large volumes
