@@ -41,7 +41,7 @@ entities:
     file_hash_sha1: '[a-fA-F0-9]{40}'
     file_hash_sha256: '[a-fA-F0-9]{64}'
     ip_address: '\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b'
-    domain: '[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}'
+    domain: '[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]?\.[a-zA-Z]{2,}'
   
   dynamic_weights:
     cve: 80

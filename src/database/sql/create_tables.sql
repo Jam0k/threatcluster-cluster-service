@@ -41,7 +41,7 @@ CREATE TABLE cluster_data.rss_feeds_clean (
 -- Entity Dictionary
 CREATE TABLE cluster_data.entities (
     entities_id SERIAL PRIMARY KEY,
-    entities_name VARCHAR(200) NOT NULL,
+    entities_name VARCHAR(500) NOT NULL, -- Increased to support file paths and registry keys
     entities_category VARCHAR(50) NOT NULL, -- 'apt_group', 'malware_family', 'cve', etc.
     entities_source VARCHAR(50) NOT NULL, -- 'manual', 'dynamic'
     entities_importance_weight INTEGER DEFAULT 50 CHECK (entities_importance_weight BETWEEN 1 AND 100),
@@ -61,7 +61,7 @@ CREATE TABLE cluster_data.keyword_weights (
 -- Semantic Clusters
 CREATE TABLE cluster_data.clusters (
     clusters_id SERIAL PRIMARY KEY,
-    clusters_name VARCHAR(200),
+    clusters_name VARCHAR(500), -- Increased to support concatenated entity names
     clusters_summary TEXT,
     clusters_coherence_score FLOAT CHECK (clusters_coherence_score BETWEEN 0 AND 1),
     clusters_created_at TIMESTAMP DEFAULT NOW(),

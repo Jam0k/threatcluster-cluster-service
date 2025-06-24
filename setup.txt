@@ -21,3 +21,5 @@ python3 -m src.database.sql.import_feeds - Import RSS feeds into rss_feeds table
 
   So to process all articles:
   python -m src.scraper.scraper_scheduler --once
+
+   python3 -m src.database.sql.import_entities - Import entities from entities JSON files

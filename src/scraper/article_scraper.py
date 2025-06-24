@@ -657,7 +657,7 @@ class ArticleScraper:
                         'scraped_at': result['scraped_at'].isoformat()
                     }),
                     json.dumps(result['images']) if result['images'] else None,
-                    False  # Not processed for next stage
+                    result['success']  # Set to TRUE if scraping/cleaning was successful
                 ))
                 
                 if cursor.rowcount > 0:

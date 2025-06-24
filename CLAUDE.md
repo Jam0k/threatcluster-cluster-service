@@ -97,6 +97,7 @@ python -m src.scraper.scraper_scheduler
 - Handles paywalls and anti-bot protection
 - Stores cleaned content in rss_feeds_clean table
 - Tracks cleaning metrics (reduction percentage, chars removed)
+- Sets rss_feeds_clean_processed = TRUE for successfully cleaned articles (ready for entity extraction)
 
 ## Project Structure
 
@@ -198,6 +199,77 @@ The import script:
 - Handles duplicates with ON CONFLICT UPDATE
 - Provides detailed logging and summary statistics
 
+## Entity Extraction
+
+The entity extraction system is implemented in `src/entity_extraction/`:
+
+- **entity_extractor.py**: Main extraction module with regex and predefined entity matching
+- **entity_validator.py**: Validation and filtering for extracted entities  
+- **entity_scheduler.py**: Daemon for periodic entity extraction
+
+### Key Features
+
+- Extracts technical indicators using regex patterns (CVEs, IPs, domains, hashes, etc.)
+- Matches predefined entities from database (APT groups, malware families, etc.)
+- Validates entities to filter out false positives
+- Discovers and stores new dynamic entities
+- Assigns confidence scores based on extraction method and context
+- Processes articles in batches for efficiency
+
+### Running Entity Extraction
+
+```bash
+# Import predefined entities first
+python -m src.database.sql.import_entities
+
+# Test entity extraction
+python -m tests.test_entity_extractor
+
+# Extract entities from single article (test mode)
+python -m src.entity_extraction.entity_extractor --test
+
+# Process specific number of articles
+python -m src.entity_extraction.entity_extractor --limit 50
+
+# Run extraction once
+python -m src.entity_extraction.entity_scheduler --once
+
+# Run as daemon (checks every 20 minutes)
+python -m src.entity_extraction.entity_scheduler
+```
+
+### Entity Categories
+
+The system handles 13+ entity categories:
+- Technical: cve, ip_address, domain, file_hash, registry_key, file_path, email
+- Threat Actors: apt_group, ransomware_group
+- Malware: malware_family
+- Organizations: company, security_vendor, government_agency
+- Vulnerabilities: vulnerability_type, attack_type
+- Infrastructure: platform, industry_sector
+- Standards: security_standard, mitre
+
+### Entity Storage Format
+
+Entities are stored in `rss_feeds_clean_extracted_entities` as JSONB:
+```json
+{
+  "entities": [
+    {
+      "entity_name": "CVE-2023-1234",
+      "entity_category": "cve",
+      "entities_id": 123,
+      "confidence": 0.95,
+      "position": "title",
+      "extraction_method": "regex"
+    }
+  ],
+  "extraction_timestamp": "2023-12-01T10:00:00Z",
+  "entity_count": 15,
+  "categories": ["cve", "apt_group", "malware_family"]
+}
+```
+
 ## Development Commands
 
 ```bash
@@ -216,3 +288,20 @@ pytest --cov=src
 - Always validate that required environment variables are set
 - The project uses psycopg2-binary for PostgreSQL connections
 - SSL mode is required for DigitalOcean managed databases
+
+## Troubleshooting
+
+### Articles not being processed by entity extraction
+If entity extraction shows "no_articles_for_entity_extraction" but you have cleaned articles:
+1. Check that `rss_feeds_clean_processed = TRUE` for cleaned articles
+2. Run `python -m fix_processed_flags` to update existing articles
+3. New articles will automatically have the correct flag set
+
+### Entity name too long errors
+If you encounter "value too long for type character varying" errors:
+1. Run the migration script to update column lengths:
+   ```bash
+   psql $DATABASE_URL -f src/database/sql/update_varchar_lengths.sql
+   ```
+2. The entity extractor will automatically truncate entities longer than 500 characters
+3. File paths and registry keys keep the end (most specific part) when truncated
