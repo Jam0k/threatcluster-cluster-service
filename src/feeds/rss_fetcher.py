@@ -75,6 +75,9 @@ class RSSFeedFetcher:
         self.rate_limit_delay = self.scraping_config.get('rate_limit_delay', 1.0)
         self.time_window_hours = self.pipeline_config.get('time_window_hours', 72)
         
+        # Load enhanced security keywords
+        self._load_enhanced_keywords()
+        
         # Calculate cutoff time for articles
         self.cutoff_time = datetime.now(timezone.utc) - timedelta(hours=self.time_window_hours)
         
@@ -89,6 +92,32 @@ class RSSFeedFetcher:
             'articles_too_old': 0,
             'errors': []
         }
+    
+    def _load_enhanced_keywords(self):
+        """Load enhanced security keywords configuration."""
+        import yaml
+        
+        # Try to load enhanced keywords
+        config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'config', 'security_keywords.yaml')
+        if os.path.exists(config_path):
+            with open(config_path, 'r') as f:
+                keywords_config = yaml.safe_load(f)
+                
+            self.required_keywords = [kw.lower() for kw in keywords_config.get('required_keywords', [])]
+            self.exclusion_patterns = keywords_config.get('exclusion_patterns', [])
+            self.non_security_titles = keywords_config.get('non_security_title_patterns', [])
+            self.excluded_domains = keywords_config.get('excluded_domains', [])
+            
+            logger.info("loaded_enhanced_keywords",
+                       required=len(self.required_keywords),
+                       exclusions=len(self.exclusion_patterns))
+        else:
+            # Fallback to basic keywords
+            self.required_keywords = self.security_keywords
+            self.exclusion_patterns = []
+            self.non_security_titles = []
+            self.excluded_domains = []
+            logger.warning("enhanced_keywords_not_found", path=config_path)
     
     def fetch_active_feeds(self) -> List[Dict[str, Any]]:
         """Fetch active RSS feed configurations from database."""
@@ -182,17 +211,45 @@ class RSSFeedFetcher:
         
         return None
     
-    def is_security_relevant(self, title: str, description: str) -> bool:
-        """Check if article is cybersecurity relevant based on keywords."""
+    def is_security_relevant(self, title: str, description: str, link: str = "") -> bool:
+        """Enhanced security relevance check with exclusion patterns."""
         # Combine title and description for checking
         text = f"{title} {description}".lower()
+        title_lower = title.lower()
         
-        # Check for any security keyword
-        for keyword in self.security_keywords:
-            if keyword in text:
-                return True
+        # Check excluded domains
+        if link:
+            for domain in self.excluded_domains:
+                if domain in link.lower():
+                    logger.debug("excluded_domain", domain=domain, title=title[:50])
+                    return False
         
-        return False
+        # Check non-security title patterns
+        for pattern in self.non_security_titles:
+            if re.match(pattern, title_lower):
+                logger.debug("non_security_title_pattern", pattern=pattern, title=title[:50])
+                return False
+        
+        # Check exclusion patterns
+        for exclusion in self.exclusion_patterns:
+            pattern = exclusion['pattern'].lower()
+            unless_keywords = [kw.lower() for kw in exclusion.get('unless_contains', [])]
+            
+            if pattern in text:
+                # Check if any of the "unless" keywords are present
+                has_security_context = any(kw in text for kw in unless_keywords)
+                if not has_security_context:
+                    logger.debug("excluded_pattern", pattern=pattern, title=title[:50])
+                    return False
+        
+        # Check for required security keywords
+        has_security_keyword = any(keyword in text for keyword in self.required_keywords)
+        
+        if not has_security_keyword:
+            logger.debug("no_security_keywords", title=title[:50])
+            return False
+        
+        return True
     
     def parse_pubdate(self, date_string: str) -> datetime:
         """Parse various RSS date formats into datetime object."""
@@ -372,17 +429,19 @@ class RSSFeedFetcher:
             if not article:
                 continue
             
-            # Apply security filtering for general news feeds
-            if feed_category == 'general_news':
-                title = article['xml_data']['title']
-                description = article['xml_data']['description']
-                
-                if not self.is_security_relevant(title, description):
-                    feed_stats['filtered'] += 1
-                    logger.debug("article_filtered", 
-                               feed_name=feed_name,
-                               title=title[:50])
-                    continue
+            # Apply enhanced security filtering to ALL feeds
+            title = article['xml_data']['title']
+            description = article['xml_data']['description']
+            link = article['xml_data']['link']
+            
+            # Apply stricter filtering for feeds like NANOG that include non-security content
+            if not self.is_security_relevant(title, description, link):
+                feed_stats['filtered'] += 1
+                logger.debug("article_filtered", 
+                           feed_name=feed_name,
+                           category=feed_category,
+                           title=title[:50])
+                continue
             
             articles_to_store.append(article)
         

@@ -1,0 +1,191 @@
+# Enhanced Security Keywords Configuration
+# Used for filtering articles to ensure security relevance
+
+# Required security keywords - at least one must be present
+required_keywords:
+  # Attacks and Threats
+  - "breach"
+  - "attack"
+  - "exploit"
+  - "vulnerability"
+  - "zero-day"
+  - "0-day"
+  - "ransomware"
+  - "malware"
+  - "trojan"
+  - "virus"
+  - "backdoor"
+  - "rootkit"
+  - "botnet"
+  - "phishing"
+  - "spear-phishing"
+  - "social engineering"
+  - "ddos"
+  - "denial of service"
+  - "brute force"
+  - "password spray"
+  - "credential stuffing"
+  - "data leak"
+  - "data theft"
+  - "data exfiltration"
+  - "cyber attack"
+  - "cyberattack"
+  - "hack"
+  - "compromise"
+  - "incident"
+  - "intrusion"
+  - "infiltration"
+  - "espionage"
+  - "cybercrime"
+  - "threat actor"
+  - "apt"
+  - "advanced persistent threat"
+  
+  # Vulnerabilities
+  - "cve-"
+  - "security flaw"
+  - "security issue"
+  - "security vulnerability"
+  - "critical vulnerability"
+  - "rce"
+  - "remote code execution"
+  - "privilege escalation"
+  - "sql injection"
+  - "xss"
+  - "cross-site scripting"
+  - "buffer overflow"
+  - "security update"
+  - "security patch"
+  - "security advisory"
+  
+  # Security Operations
+  - "incident response"
+  - "threat intelligence"
+  - "security research"
+  - "malware analysis"
+  - "forensics"
+  - "ioc"
+  - "indicator of compromise"
+  - "security alert"
+  - "security warning"
+  - "security notice"
+  - "cisa"
+  - "cert"
+  - "ncsc"
+  - "mitre att&ck"
+  
+  # Specific Security Topics
+  - "ransomware gang"
+  - "ransomware group"
+  - "cybersecurity"
+  - "infosec"
+  - "opsec"
+  - "encryption"
+  - "cryptojacking"
+  - "supply chain attack"
+  - "watering hole"
+  - "drive-by download"
+  - "fileless malware"
+  - "living off the land"
+  - "lateral movement"
+  - "persistence"
+  - "command and control"
+  - "c2"
+  - "exfiltration"
+  - "data breach"
+  - "security breach"
+  
+# Exclusion patterns - if these are present WITHOUT security keywords, exclude
+exclusion_patterns:
+  # Network operations (non-security)
+  - pattern: "hardware question"
+    unless_contains: ["vulnerability", "exploit", "security"]
+  
+  - pattern: "bgp"
+    unless_contains: ["hijack", "attack", "security", "vulnerability"]
+  
+  - pattern: "peering"
+    unless_contains: ["attack", "security", "breach"]
+  
+  - pattern: "transit"
+    unless_contains: ["attack", "security", "breach"]
+  
+  - pattern: "ix "
+    unless_contains: ["attack", "security", "breach"]
+  
+  - pattern: "internet exchange"
+    unless_contains: ["attack", "security", "breach"]
+  
+  - pattern: "asn"
+    unless_contains: ["hijack", "attack", "security"]
+  
+  - pattern: "route"
+    unless_contains: ["hijack", "attack", "security", "poisoning"]
+  
+  - pattern: "failover"
+    unless_contains: ["attack", "security", "vulnerability"]
+  
+  - pattern: "load balancer"
+    unless_contains: ["vulnerability", "exploit", "security"]
+  
+  - pattern: "bandwidth"
+    unless_contains: ["ddos", "attack", "security"]
+  
+  # Product announcements (non-security)
+  - pattern: "new feature"
+    unless_contains: ["security", "vulnerability", "protection"]
+  
+  - pattern: "product launch"
+    unless_contains: ["security", "protection", "defense"]
+  
+  - pattern: "now available"
+    unless_contains: ["security update", "patch", "fix"]
+  
+  - pattern: "announces"
+    unless_contains: ["breach", "vulnerability", "attack", "security"]
+  
+  # General tech discussions
+  - pattern: "ai features"
+    unless_contains: ["security", "attack", "vulnerability", "malicious"]
+  
+  - pattern: "chromebook"
+    unless_contains: ["vulnerability", "exploit", "security", "malware"]
+  
+  - pattern: "laptop"
+    unless_contains: ["stolen", "breach", "malware", "security"]
+  
+  # Business/Financial (non-security)
+  - pattern: "funding"
+    unless_contains: ["cybersecurity", "security", "breach"]
+  
+  - pattern: "acquisition"
+    unless_contains: ["security", "breach", "attack"]
+  
+  - pattern: "ipo"
+    unless_contains: ["security", "breach", "attack"]
+  
+  - pattern: "earnings"
+    unless_contains: ["breach", "attack", "ransomware"]
+
+# Domain-specific exclusions
+excluded_domains:
+  - "reddit.com"
+  - "twitter.com"
+  - "x.com"
+  - "facebook.com"
+  - "linkedin.com"
+  - "youtube.com"
+  - "instagram.com"
+  - "tiktok.com"
+
+# Title patterns that indicate non-security content
+non_security_title_patterns:
+  - "^re: .*question$"  # Reply to questions
+  - "^re: hardware"     # Hardware discussions
+  - "^re: network"      # Network discussions (unless security related)
+  - "^re: bgp"          # BGP discussions
+  - "^re: dns"          # DNS discussions (unless security related)
+  - "^job posting"      # Job postings
+  - "^hiring"           # Hiring posts
+  - "^\\[ot\\]"        # Off-topic posts
+  - "^\\[off.?topic\\]" # Off-topic posts

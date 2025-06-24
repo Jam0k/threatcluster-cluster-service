@@ -297,12 +297,6 @@ feeds:
     credibility: 80
     is_active: true
 
-  - url: "https://seclists.org/rss/nanog.rss"
-    name: "NANOG"
-    category: "cybersecurity"
-    credibility: 75
-    is_active: true
-
   - url: "https://www.cisecurity.org/feed/advisories"
     name: "CIS Security Advisories"
     category: "cybersecurity"

@@ -54,11 +54,22 @@ python -m src.feeds.scheduler
 ### Key Features
 
 - Fetches from active feeds in database
-- Applies security keyword filtering to general news
+- **Enhanced security filtering** applied to ALL feeds (not just general news)
+- Advanced exclusion patterns to filter out non-security content
 - Stores raw XML data as JSONB
 - Duplicate detection based on article URL
 - Comprehensive error handling and logging
 - Rate limiting and retry logic
+
+### Enhanced Security Filtering
+
+The system now uses `config/security_keywords.yaml` for advanced filtering:
+- **Required Keywords**: At least one security keyword must be present
+- **Exclusion Patterns**: Filters out non-security discussions (hardware questions, network ops, product announcements)
+- **Title Pattern Matching**: Identifies and excludes common non-security patterns
+- **Domain Blocking**: Excludes social media and non-security domains
+
+This prevents non-security content (like NANOG hardware discussions) from entering the pipeline.
 
 ## Article Scraping
 
