@@ -1,0 +1,202 @@
+[
+  {
+    "entities_name": "LockBit",
+    "entities_importance_weight": 95
+  },
+  {
+    "entities_name": "Conti",
+    "entities_importance_weight": 95
+  },
+  {
+    "entities_name": "REvil",
+    "entities_importance_weight": 95
+  },
+  {
+    "entities_name": "Sodinokibi",
+    "entities_importance_weight": 95
+  },
+  {
+    "entities_name": "DarkSide",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "BlackCat",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "ALPHV",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Hive",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Ryuk",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Cl0p",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Clop",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "BlackMatter",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Maze",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Egregor",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "AvosLocker",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Ragnar Locker",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "BlackByte",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Vice Society",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "LV",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Cuba",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "HelloKitty",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "FiveHands",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Snatch",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Nemty",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "GandCrab",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "SunCrypt",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Pay2Key",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Dharma",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Phobos",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "NetWalker",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "DoppelPaymer",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "MountLocker",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Babuk",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Grief",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "RansomEXX",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Prometheus",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Mespinoza",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "Pysa",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Nefilim",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Avaddon",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "RagnarLocker",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "RansomHub",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Royal",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "BianLian",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "LockFile",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Play",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Quantum",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Akira",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "8Base",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Industrial Spy",
+    "entities_importance_weight": 75
+  }
+]

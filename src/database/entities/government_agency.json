@@ -1,0 +1,246 @@
+[
+  {
+    "entities_name": "CISA",
+    "entities_importance_weight": 95
+  },
+  {
+    "entities_name": "Cybersecurity and Infrastructure Security Agency",
+    "entities_importance_weight": 95
+  },
+  {
+    "entities_name": "NSA",
+    "entities_importance_weight": 95
+  },
+  {
+    "entities_name": "National Security Agency",
+    "entities_importance_weight": 95
+  },
+  {
+    "entities_name": "FBI",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Federal Bureau of Investigation",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "GRU",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Main Intelligence Directorate",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "FSB",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Federal Security Service",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "SVR",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Foreign Intelligence Service",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "MSS",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Ministry of State Security",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "PLA Unit 61398",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "RGB",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Reconnaissance General Bureau",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "GCHQ",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Government Communications Headquarters",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "NCSC",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "National Cyber Security Centre",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Mossad",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Unit 8200",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "MOIS",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Ministry of Intelligence and Security",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "IRGC",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Islamic Revolutionary Guard Corps",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "CERT",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Computer Emergency Response Team",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "US-CERT",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "United States Computer Emergency Readiness Team",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "ENISA",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "European Union Agency for Cybersecurity",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "CYBERCOM",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "US Cyber Command",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "CIA",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Central Intelligence Agency",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "DHS",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Department of Homeland Security",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "BSI",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Federal Office for Information Security",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "ANSSI",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "National Cybersecurity Agency of France",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "ACSC",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Australian Cyber Security Centre",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "CSE",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Communications Security Establishment",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "CCCS",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Canadian Centre for Cyber Security",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "FCC",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "Federal Communications Commission",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "Europol",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "EC3",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "European Cybercrime Centre",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "NIS Cooperation Group",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "Secret Service",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "United States Secret Service",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "CNCERT",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "National Computer Network Emergency Response Technical Team",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "CNSC",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "China National Cyber Security Center",
+    "entities_importance_weight": 75
+  }
+]

@@ -1,0 +1,234 @@
+[
+  {
+    "entities_name": "ISO 27001",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "NIST CSF",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "NIST Cybersecurity Framework",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "NIST 800-53",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "NIST 800-171",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "CMMC",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Cybersecurity Maturity Model Certification",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "GDPR",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "General Data Protection Regulation",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "PCI DSS",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Payment Card Industry Data Security Standard",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "HIPAA",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Health Insurance Portability and Accountability Act",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "SOC 2",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Service Organization Control 2",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "CIS Controls",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Center for Internet Security Controls",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "CCPA",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "California Consumer Privacy Act",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "CPRA",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "California Privacy Rights Act",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "FedRAMP",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Federal Risk and Authorization Management Program",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "SOX",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Sarbanes-Oxley Act",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "FISMA",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Federal Information Security Modernization Act",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "NERC CIP",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "North American Electric Reliability Corporation Critical Infrastructure Protection",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "COBIT",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Control Objectives for Information and Related Technologies",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "ITIL",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Information Technology Infrastructure Library",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "ISO 27002",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "ISO 27017",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "ISO 27018",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "FERPA",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Family Educational Rights and Privacy Act",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "GLBA",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Gramm-Leach-Bliley Act",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "NIS Directive",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Network and Information Systems Directive",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "DFARS",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Defense Federal Acquisition Regulation Supplement",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "NYCRR 500",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "New York Department of Financial Services Cybersecurity Regulation",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "SOC 1",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "IASME",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "Cyber Essentials",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Common Criteria",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "FIPS 140-2",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Federal Information Processing Standard 140-2",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "FIPS 140-3",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Federal Information Processing Standard 140-3",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "ETSI",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "ISA/IEC 62443",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "DORA",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Digital Operational Resilience Act",
+    "entities_importance_weight": 80
+  }
+]

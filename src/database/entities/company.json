@@ -1,0 +1,202 @@
+[
+  {
+    "entities_name": "Microsoft",
+    "entities_importance_weight": 95
+  },
+  {
+    "entities_name": "Google",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Apple",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Amazon",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Meta",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Facebook",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Cisco",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "IBM",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Oracle",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "SAP",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "SolarWinds",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "VMware",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Cloudflare",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Okta",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Intel",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "AMD",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "NVIDIA",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Salesforce",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Adobe",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Twitter",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "X",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "LinkedIn",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "Zoom",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Slack",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "Samsung",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "Huawei",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Siemens",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "GE",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "Honeywell",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "ABB",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "Dell",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "HPE",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "HP Inc",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "Lenovo",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "Citrix",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Fortinet",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "Juniper Networks",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "Akamai",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "ServiceNow",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "Red Hat",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "GitHub",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "GitLab",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "Atlassian",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "Broadcom",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Qualcomm",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "Accenture",
+    "entities_importance_weight": 65
+  },
+  {
+    "entities_name": "Deloitte",
+    "entities_importance_weight": 65
+  },
+  {
+    "entities_name": "Colonial Pipeline",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "JBS Foods",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "Kaseya",
+    "entities_importance_weight": 75
+  }
+]

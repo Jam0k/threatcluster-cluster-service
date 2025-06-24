@@ -1,0 +1,238 @@
+[
+  {
+    "entities_name": "Windows",
+    "entities_importance_weight": 95
+  },
+  {
+    "entities_name": "Windows 11",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Windows 10",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Windows Server",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Linux",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Ubuntu",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Red Hat Enterprise Linux",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "RHEL",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "CentOS",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Debian",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "macOS",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "iOS",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Android",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Chrome OS",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "AWS",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Amazon Web Services",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Azure",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Microsoft Azure",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Google Cloud Platform",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "GCP",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Office 365",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Microsoft 365",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Exchange Server",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "SharePoint",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Active Directory",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Azure Active Directory",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Entra ID",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "VMware ESXi",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "VMware vSphere",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Hyper-V",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Docker",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Kubernetes",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Cisco IOS",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Juniper Junos",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Oracle Database",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Microsoft SQL Server",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "MySQL",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "PostgreSQL",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "MongoDB",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "SAP",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Salesforce",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "WordPress",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Apache",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Nginx",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "IIS",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Internet Information Services",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Fortinet FortiOS",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Palo Alto PAN-OS",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Citrix",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "IBM z/OS",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "AIX",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "HP-UX",
+    "entities_importance_weight": 65
+  },
+  {
+    "entities_name": "Solaris",
+    "entities_importance_weight": 65
+  },
+  {
+    "entities_name": "Industrial Control Systems",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "ICS",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "SCADA",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "IoT",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Internet of Things",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Container",
+    "entities_importance_weight": 80
+  }
+]

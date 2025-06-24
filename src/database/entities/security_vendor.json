@@ -1,0 +1,202 @@
+[
+  {
+    "entities_name": "CrowdStrike",
+    "entities_importance_weight": 95
+  },
+  {
+    "entities_name": "Palo Alto Networks",
+    "entities_importance_weight": 95
+  },
+  {
+    "entities_name": "Microsoft Security",
+    "entities_importance_weight": 95
+  },
+  {
+    "entities_name": "Cisco Security",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Mandiant",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Google Cloud Security",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Fortinet",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Trend Micro",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Symantec",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Broadcom Cybersecurity",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Check Point",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Okta",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "SentinelOne",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "IBM Security",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Rapid7",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Sophos",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Tenable",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "McAfee",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Trellix",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Cloudflare",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Zscaler",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "CyberArk",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Recorded Future",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Darktrace",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "F5",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Akamai",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Proofpoint",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "RSA Security",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Splunk",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Wiz",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "VMware Carbon Black",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Carbon Black",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Imperva",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Qualys",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Barracuda",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "FireEye",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Kaspersky",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Juniper Networks Security",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Armis",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Elastic Security",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Auth0",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "OneLogin",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Ping Identity",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "ForgeRock",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "Lacework",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Tanium",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Netskope",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "ExtraHop",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "Arctic Wolf",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Snyk",
+    "entities_importance_weight": 75
+  }
+]

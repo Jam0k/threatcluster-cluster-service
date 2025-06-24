@@ -160,6 +160,44 @@ pytest tests/test_db.py
 - Run tests from the project root
 - Database connection test available at `tests/test_db.py`
 
+## Entity Management
+
+The entity management system is implemented in `src/database/`:
+
+- **entities/**: Directory containing JSON files with manual entity definitions
+- **sql/import_entities.py**: Script to import manual entities into the database
+
+### Entity Categories
+
+The system supports 13 entity categories:
+- apt_group
+- attack_type
+- company
+- country
+- government_agency
+- industry_sector
+- malware_family
+- mitre
+- platform
+- ransomware_group
+- security_standard
+- security_vendor
+- vulnerability_type
+
+### Importing Entities
+
+```bash
+# Import all entities from JSON files
+python -m src.database.sql.import_entities
+```
+
+The import script:
+- Reads all .json files from src/database/entities/
+- Extracts category from filename (e.g., "apt_group" from "apt_group.json")
+- Sets entities_source = "manual" for all imports
+- Handles duplicates with ON CONFLICT UPDATE
+- Provides detailed logging and summary statistics
+
 ## Development Commands
 
 ```bash

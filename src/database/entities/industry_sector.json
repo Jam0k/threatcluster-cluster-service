@@ -1,0 +1,198 @@
+[
+  {
+    "entities_name": "Energy",
+    "entities_importance_weight": 95
+  },
+  {
+    "entities_name": "Financial Services",
+    "entities_importance_weight": 95
+  },
+  {
+    "entities_name": "Healthcare",
+    "entities_importance_weight": 95
+  },
+  {
+    "entities_name": "Healthcare and Public Health",
+    "entities_importance_weight": 95
+  },
+  {
+    "entities_name": "Information Technology",
+    "entities_importance_weight": 95
+  },
+  {
+    "entities_name": "Defense Industrial Base",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Communications",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Critical Manufacturing",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Nuclear",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Nuclear Reactors, Materials, and Waste",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Government Facilities",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Transportation Systems",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Water and Wastewater Systems",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Food and Agriculture",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Emergency Services",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Chemical",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Commercial Facilities",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Dams",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Banking",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Insurance",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Oil and Gas",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Electricity",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Manufacturing",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Telecommunications",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Pharmaceuticals",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Maritime Transportation",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Aviation",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Highways and Motor Carriers",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Mass Transit",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Pipeline Systems",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Freight Rail",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Postal and Shipping",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Education",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Retail",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "Hospitality",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "Entertainment",
+    "entities_importance_weight": 65
+  },
+  {
+    "entities_name": "Media",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Aerospace",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Biotechnology",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Construction",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "Real Estate",
+    "entities_importance_weight": 65
+  },
+  {
+    "entities_name": "Agriculture",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Mining",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "Metals",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Legal Services",
+    "entities_importance_weight": 65
+  },
+  {
+    "entities_name": "Professional Services",
+    "entities_importance_weight": 65
+  },
+  {
+    "entities_name": "Logistics",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Waste Management",
+    "entities_importance_weight": 65
+  },
+  {
+    "entities_name": "Public Health",
+    "entities_importance_weight": 80
+  }
+]

@@ -1,0 +1,202 @@
+[
+  {
+    "entities_name": "Ransomware",
+    "entities_importance_weight": 95
+  },
+  {
+    "entities_name": "Supply Chain Attack",
+    "entities_importance_weight": 95
+  },
+  {
+    "entities_name": "Zero-day Exploit",
+    "entities_importance_weight": 95
+  },
+  {
+    "entities_name": "Advanced Persistent Threat",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Phishing",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Spear Phishing",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Business Email Compromise",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Credential Theft",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Lateral Movement",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "DDoS Attack",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Man-in-the-Middle Attack",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "SQL Injection",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Cross-Site Scripting",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Privilege Escalation",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Living Off The Land",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Data Exfiltration",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Brute Force Attack",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "Password Spraying",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Social Engineering",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Watering Hole Attack",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Drive-by Download",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "DNS Hijacking",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Domain Shadowing",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Cryptojacking",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Firmware Attack",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Island Hopping",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Malvertising",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "Session Hijacking",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "API Abuse",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Remote Code Execution",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Pass-the-Hash",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Pass-the-Ticket",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Kerberoasting",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Account Takeover",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Typosquatting",
+    "entities_importance_weight": 65
+  },
+  {
+    "entities_name": "Insider Threat",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Rootkit",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Fileless Malware Attack",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Cross-site Request Forgery",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "Server Side Request Forgery",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "DNS Tunneling",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Command and Control",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Man-in-the-Browser Attack",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "Deepfake Attack",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Sideloading Attack",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "LDAP Injection",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "Memory Corruption",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Cache Poisoning",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "XML External Entity Attack",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "Insecure Direct Object References",
+    "entities_importance_weight": 65
+  }
+]

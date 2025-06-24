@@ -1,0 +1,198 @@
+[
+  {
+    "entities_name": "United States",
+    "entities_importance_weight": 95
+  },
+  {
+    "entities_name": "Russia",
+    "entities_importance_weight": 95
+  },
+  {
+    "entities_name": "China",
+    "entities_importance_weight": 95
+  },
+  {
+    "entities_name": "North Korea",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Iran",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Israel",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "United Kingdom",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Germany",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "France",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Ukraine",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "South Korea",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "India",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Australia",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Canada",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Japan",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Netherlands",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "Estonia",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "Singapore",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "Saudi Arabia",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "United Arab Emirates",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "Brazil",
+    "entities_importance_weight": 65
+  },
+  {
+    "entities_name": "Turkey",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "Pakistan",
+    "entities_importance_weight": 65
+  },
+  {
+    "entities_name": "Vietnam",
+    "entities_importance_weight": 65
+  },
+  {
+    "entities_name": "Taiwan",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Belgium",
+    "entities_importance_weight": 65
+  },
+  {
+    "entities_name": "Sweden",
+    "entities_importance_weight": 65
+  },
+  {
+    "entities_name": "Finland",
+    "entities_importance_weight": 65
+  },
+  {
+    "entities_name": "Norway",
+    "entities_importance_weight": 65
+  },
+  {
+    "entities_name": "Italy",
+    "entities_importance_weight": 65
+  },
+  {
+    "entities_name": "Spain",
+    "entities_importance_weight": 65
+  },
+  {
+    "entities_name": "Poland",
+    "entities_importance_weight": 65
+  },
+  {
+    "entities_name": "Switzerland",
+    "entities_importance_weight": 65
+  },
+  {
+    "entities_name": "New Zealand",
+    "entities_importance_weight": 60
+  },
+  {
+    "entities_name": "Mexico",
+    "entities_importance_weight": 60
+  },
+  {
+    "entities_name": "Egypt",
+    "entities_importance_weight": 60
+  },
+  {
+    "entities_name": "Indonesia",
+    "entities_importance_weight": 60
+  },
+  {
+    "entities_name": "Malaysia",
+    "entities_importance_weight": 60
+  },
+  {
+    "entities_name": "Belarus",
+    "entities_importance_weight": 65
+  },
+  {
+    "entities_name": "Czech Republic",
+    "entities_importance_weight": 60
+  },
+  {
+    "entities_name": "Romania",
+    "entities_importance_weight": 60
+  },
+  {
+    "entities_name": "South Africa",
+    "entities_importance_weight": 55
+  },
+  {
+    "entities_name": "Argentina",
+    "entities_importance_weight": 55
+  },
+  {
+    "entities_name": "Philippines",
+    "entities_importance_weight": 55
+  },
+  {
+    "entities_name": "Colombia",
+    "entities_importance_weight": 50
+  },
+  {
+    "entities_name": "Thailand",
+    "entities_importance_weight": 55
+  },
+  {
+    "entities_name": "Denmark",
+    "entities_importance_weight": 60
+  },
+  {
+    "entities_name": "Ireland",
+    "entities_importance_weight": 60
+  },
+  {
+    "entities_name": "Portugal",
+    "entities_importance_weight": 55
+  }
+]

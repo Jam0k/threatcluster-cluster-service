@@ -1,0 +1,206 @@
+[
+  {
+    "entities_name": "APT1",
+    "entities_importance_weight": 95
+  },
+  {
+    "entities_name": "Lazarus Group",
+    "entities_importance_weight": 95
+  },
+  {
+    "entities_name": "APT28",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "APT29",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Fancy Bear",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Cozy Bear",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Sandworm Team",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Equation Group",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Carbanak",
+    "entities_importance_weight": 88
+  },
+  {
+    "entities_name": "Dragonfly",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "APT32",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "OceanLotus",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "APT33",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Elfin",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "APT37",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Reaper",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "APT38",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "APT39",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "APT40",
+    "entities_importance_weight": 83
+  },
+  {
+    "entities_name": "Leviathan",
+    "entities_importance_weight": 78
+  },
+  {
+    "entities_name": "APT41",
+    "entities_importance_weight": 88
+  },
+  {
+    "entities_name": "Barium",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "BlackTech",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Mustang Panda",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Turla",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Wizard Spider",
+    "entities_importance_weight": 88
+  },
+  {
+    "entities_name": "Winnti Group",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Kimsuky",
+    "entities_importance_weight": 78
+  },
+  {
+    "entities_name": "Darkhotel",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Silence",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Bronze Butler",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "Dark Nexus",
+    "entities_importance_weight": 65
+  },
+  {
+    "entities_name": "FIN7",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "FIN8",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Stealth Falcon",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Deep Panda",
+    "entities_importance_weight": 83
+  },
+  {
+    "entities_name": "Stone Panda",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Ember Bear",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Nomadic Octopus",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "Molerats",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Muddy Water",
+    "entities_importance_weight": 78
+  },
+  {
+    "entities_name": "TA505",
+    "entities_importance_weight": 82
+  },
+  {
+    "entities_name": "TA428",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Temp.Veles",
+    "entities_importance_weight": 72
+  },
+  {
+    "entities_name": "Gallium",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "UNC2452",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "SolarWinds Attackers",
+    "entities_importance_weight": 88
+  },
+  {
+    "entities_name": "Comment Crew",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "The Shadow Brokers",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Gaza Cybergang",
+    "entities_importance_weight": 70
+  },
+  {
+    "entities_name": "PLATINUM",
+    "entities_importance_weight": 75
+  }
+]

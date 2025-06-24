@@ -1,0 +1,266 @@
+[
+  {
+    "entities_name": "Initial Access",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Execution",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Persistence",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Privilege Escalation",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Defense Evasion",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Credential Access",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Discovery",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Lateral Movement",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Collection",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Command and Control",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Exfiltration",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Impact",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "T1566",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "Phishing",
+    "entities_importance_weight": 90
+  },
+  {
+    "entities_name": "T1078",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Valid Accounts",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "T1190",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Exploit Public-Facing Application",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "T1133",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "External Remote Services",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "T1195",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Supply Chain Compromise",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "T1059",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Command and Scripting Interpreter",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "T1053",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Scheduled Task/Job",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "T1055",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Process Injection",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "T1027",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Obfuscated Files or Information",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "T1070",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Indicator Removal",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "T1140",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Deobfuscate/Decode Files or Information",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "T1003",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "OS Credential Dumping",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "T1110",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Brute Force",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "T1087",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Account Discovery",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "T1018",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Remote System Discovery",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "T1021",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Remote Services",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "T1105",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Ingress Tool Transfer",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "T1056",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Input Capture",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "T1486",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "Data Encrypted for Impact",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "T1489",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Service Stop",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "T1490",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Inhibit System Recovery",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "T1071",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Application Layer Protocol",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "T1090",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Proxy",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "T1041",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "Exfiltration Over C2 Channel",
+    "entities_importance_weight": 75
+  },
+  {
+    "entities_name": "T1098",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "Account Manipulation",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "T1218",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "System Binary Proxy Execution",
+    "entities_importance_weight": 80
+  },
+  {
+    "entities_name": "T1204",
+    "entities_importance_weight": 85
+  },
+  {
+    "entities_name": "User Execution",
+    "entities_importance_weight": 85
+  }
+]
