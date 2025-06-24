@@ -89,11 +89,14 @@ python -m src.scraper.scraper_scheduler
 ### Key Features
 
 - Extracts full article content from web pages
+- **Integrated content cleaning** - removes HTML, navigation, ads, footers
+- Preserves security-relevant content (CVEs, IPs, domains, etc.)
 - Falls back to RSS description if scraping fails
 - Extracts and stores image URLs
 - Domain-based rate limiting
 - Handles paywalls and anti-bot protection
-- Stores content in rss_feeds_clean table
+- Stores cleaned content in rss_feeds_clean table
+- Tracks cleaning metrics (reduction percentage, chars removed)
 
 ## Project Structure
 

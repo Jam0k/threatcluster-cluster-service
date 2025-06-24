@@ -14,6 +14,7 @@ import json
 import logging
 from logging.handlers import RotatingFileHandler
 import os
+import html
 from datetime import datetime, timezone
 from typing import Dict, List, Optional, Tuple, Any, Set
 from urllib.parse import urlparse, urljoin
@@ -104,9 +105,60 @@ class ArticleScraper:
     
     # Minimum content length to be considered valid
     MIN_CONTENT_LENGTH = 100
+    MAX_CONTENT_LENGTH = 10000
     
     # Image file extensions
     IMAGE_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp'}
+    
+    # Navigation and UI patterns to remove
+    NAVIGATION_PATTERNS = [
+        r'\b(Home|About|Contact|Menu|Navigation|Search)\b',
+        r'\b(Subscribe|Newsletter|Sign up|Email updates?)\b',
+        r'\b(Share|Tweet|Facebook|LinkedIn|Pinterest|Reddit)\b',
+        r'\b(Previous|Next|Continue reading|Read more)\b',
+        r'\b(Page \d+ of \d+|Pages?:?\s*\d+)\b',
+        r'\b(Comments?|Leave a comment|Reply|Discuss)\b',
+        r'\b(Advertisement|Sponsored|Promoted)\b',
+        r'\b(Cookie policy|Privacy policy|Terms of service)\b',
+        r'\b(Follow us|Connect with us|Join us)\b',
+    ]
+    
+    # Footer patterns to remove
+    FOOTER_PATTERNS = [
+        r'The post .+ appeared first on .+',
+        r'Source:?\s*https?://\S+',
+        r'Originally published at .+',
+        r'Copyright ©?\s*\d{4}',
+        r'All rights reserved',
+        r'Read the full article at .+',
+        r'©\s*\d{4}\s*.+',
+        r'Filed under:?\s*.+',
+        r'Tagged with:?\s*.+',
+        r'\d+ minute read',
+        r'Reading time:?\s*\d+\s*min',
+    ]
+    
+    # Security terms to preserve (case-insensitive)
+    SECURITY_PRESERVE_PATTERNS = [
+        # CVE patterns
+        r'CVE-\d{4}-\d{4,}',
+        # IP addresses
+        r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b',
+        # File hashes (MD5, SHA1, SHA256)
+        r'\b[a-fA-F0-9]{32}\b',
+        r'\b[a-fA-F0-9]{40}\b', 
+        r'\b[a-fA-F0-9]{64}\b',
+        # Domain patterns for security context
+        r'(?:malicious|phishing|c2|command.?and.?control|malware|apt)\s+(?:domain|site|server)s?\s*:?\s*([a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]?\.[a-zA-Z]{2,})',
+        # Email addresses
+        r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}',
+        # File paths
+        r'[A-Za-z]:\\[\w\s\\.-]+|/[\w\s/.-]+',
+        # Registry keys
+        r'HKEY_[A-Z_]+(?:\\[^\\]+)+',
+        # Port numbers
+        r':\d{1,5}\b',
+    ]
     
     def __init__(self):
         """Initialize the article scraper with configuration."""
@@ -124,6 +176,16 @@ class ArticleScraper:
         # Domain rate limiting tracker
         self.domain_last_access = defaultdict(float)
         
+        # Compile regex patterns for efficiency
+        self.navigation_regex = re.compile(
+            '|'.join(self.NAVIGATION_PATTERNS), 
+            re.IGNORECASE | re.MULTILINE
+        )
+        self.footer_regex = re.compile(
+            '|'.join(self.FOOTER_PATTERNS),
+            re.IGNORECASE | re.MULTILINE
+        )
+        
         # Statistics tracking
         self.stats = {
             'articles_attempted': 0,
@@ -131,6 +193,7 @@ class ArticleScraper:
             'articles_failed': 0,
             'content_fallback': 0,
             'total_content_length': 0,
+            'total_chars_removed': 0,
             'errors': []
         }
     
@@ -318,6 +381,161 @@ class ArticleScraper:
         except:
             return False
     
+    def clean_html_entities(self, text: str) -> str:
+        """Decode HTML entities and clean malformed HTML."""
+        if not text:
+            return ""
+        
+        # Decode HTML entities
+        text = html.unescape(text)
+        
+        # Remove any remaining HTML tags
+        text = re.sub(r'<[^>]+>', ' ', text)
+        
+        # Clean up HTML comments
+        text = re.sub(r'<!--.*?-->', '', text, flags=re.DOTALL)
+        
+        # Remove CSS and JavaScript
+        text = re.sub(r'<style[^>]*>.*?</style>', '', text, flags=re.DOTALL | re.IGNORECASE)
+        text = re.sub(r'<script[^>]*>.*?</script>', '', text, flags=re.DOTALL | re.IGNORECASE)
+        
+        return text
+    
+    def clean_whitespace(self, text: str) -> str:
+        """Normalize whitespace and formatting."""
+        if not text:
+            return ""
+        
+        # Replace various whitespace with regular spaces
+        text = re.sub(r'[\t\r\f\v]+', ' ', text)
+        
+        # Replace multiple spaces with single space
+        text = re.sub(r' {2,}', ' ', text)
+        
+        # Replace multiple newlines with double newline
+        text = re.sub(r'\n{3,}', '\n\n', text)
+        
+        # Remove spaces at line beginnings and ends
+        text = '\n'.join(line.strip() for line in text.split('\n'))
+        
+        # Remove empty lines
+        lines = [line for line in text.split('\n') if line.strip()]
+        text = '\n'.join(lines)
+        
+        return text.strip()
+    
+    def remove_navigation_elements(self, text: str) -> str:
+        """Remove navigation and UI elements."""
+        if not text:
+            return ""
+        
+        # Remove navigation patterns
+        text = self.navigation_regex.sub(' ', text)
+        
+        # Remove isolated navigation words at line starts/ends
+        lines = text.split('\n')
+        cleaned_lines = []
+        
+        nav_words = {'Home', 'About', 'Contact', 'Menu', 'Search', 'Share', 
+                     'Tweet', 'Facebook', 'LinkedIn', 'Email', 'Subscribe'}
+        
+        for line in lines:
+            words = line.strip().split()
+            if len(words) <= 3 and any(word in nav_words for word in words):
+                continue
+            cleaned_lines.append(line)
+        
+        return '\n'.join(cleaned_lines)
+    
+    def remove_footers(self, text: str) -> str:
+        """Remove footer patterns and metadata."""
+        if not text:
+            return ""
+        
+        # Remove footer patterns
+        text = self.footer_regex.sub('', text)
+        
+        # Remove author bylines (unless they contain security info)
+        if not re.search(r'(CVE|vulnerability|exploit|malware)', text[:200], re.IGNORECASE):
+            text = re.sub(r'^By\s+.+?\n', '', text, flags=re.MULTILINE)
+            text = re.sub(r'^Author:?\s*.+?\n', '', text, flags=re.MULTILINE | re.IGNORECASE)
+        
+        return text
+    
+    def remove_urls(self, text: str) -> str:
+        """Remove or clean URLs while preserving domain names in security context."""
+        if not text:
+            return ""
+        
+        # First, preserve security-relevant domains
+        preserved_domains = []
+        
+        # Find and temporarily replace security domains
+        domain_pattern = r'(?:(?:malicious|phishing|c2|command.?and.?control|malware|apt)\s+(?:domain|site|server)s?\s*:?\s*)([a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]?\.[a-zA-Z]{2,})'
+        for match in re.finditer(domain_pattern, text, re.IGNORECASE):
+            placeholder = f"__DOMAIN_{len(preserved_domains)}__"
+            preserved_domains.append(match.group(1))
+            text = text.replace(match.group(0), f"{match.group(0).split()[0]} {placeholder}")
+        
+        # Remove general URLs
+        text = re.sub(r'https?://\S+', '', text)
+        text = re.sub(r'www\.\S+', '', text)
+        text = re.sub(r'\[http[^\]]+\]', '', text)  # Remove markdown URLs
+        
+        # Restore preserved domains
+        for i, domain in enumerate(preserved_domains):
+            text = text.replace(f"__DOMAIN_{i}__", domain)
+        
+        return text
+    
+    def clean_content(self, content: str) -> Tuple[str, Dict[str, Any]]:
+        """Apply all cleaning operations to content."""
+        original_length = len(content)
+        
+        # Apply cleaning operations in sequence
+        content = self.clean_html_entities(content)
+        content = self.remove_urls(content)
+        content = self.remove_navigation_elements(content)
+        content = self.remove_footers(content)
+        content = self.clean_whitespace(content)
+        
+        # Truncate if too long
+        if len(content) > self.MAX_CONTENT_LENGTH:
+            content = content[:self.MAX_CONTENT_LENGTH] + "..."
+        
+        # Calculate cleaning metrics
+        cleaned_length = len(content)
+        chars_removed = original_length - cleaned_length
+        reduction_percent = (chars_removed / original_length * 100) if original_length > 0 else 0
+        
+        cleaning_metadata = {
+            'original_length': original_length,
+            'cleaned_length': cleaned_length,
+            'chars_removed': chars_removed,
+            'reduction_percent': round(reduction_percent, 2)
+        }
+        
+        return content, cleaning_metadata
+    
+    def clean_title(self, title: str) -> str:
+        """Clean article title."""
+        if not title:
+            return ""
+        
+        # Remove HTML entities
+        title = html.unescape(title)
+        
+        # Remove any HTML tags
+        title = re.sub(r'<[^>]+>', '', title)
+        
+        # Remove site names often appended to titles
+        title = re.sub(r'\s*[\|\-–—]\s*[^|\-–—]+$', '', title)
+        
+        # Clean whitespace
+        title = ' '.join(title.split())
+        
+        return title.strip()
+    
     def scrape_article(self, article: Dict[str, Any]) -> Dict[str, Any]:
         """Scrape a single article."""
         raw_id = article['rss_feeds_raw_id']
@@ -377,16 +595,30 @@ class ArticleScraper:
             self.stats['content_fallback'] += 1
             logger.info("using_rss_fallback", url=url)
         
+        # Clean the content
+        cleaned_content, cleaning_metadata = self.clean_content(scraped_content)
+        cleaned_title = self.clean_title(title)
+        
+        # Update stats
+        self.stats['total_chars_removed'] += cleaning_metadata['chars_removed']
+        
+        # Validate cleaned content length
+        if len(cleaned_content) < self.MIN_CONTENT_LENGTH:
+            if not error_message:
+                error_message = "Content too short after cleaning"
+            success = False
+        
         # Prepare result
         result = {
             'raw_id': raw_id,
             'feed_id': feed_id,
-            'title': title,
-            'content': scraped_content,
+            'title': cleaned_title,
+            'content': cleaned_content,
             'images': image_urls,
             'success': success,
             'error': error_message,
-            'content_length': len(scraped_content),
+            'content_length': len(cleaned_content),
+            'cleaning_metadata': cleaning_metadata,
             'scraped_at': datetime.now(timezone.utc)
         }
         
@@ -421,6 +653,7 @@ class ArticleScraper:
                         'success': result['success'],
                         'error': result['error'],
                         'content_length': result['content_length'],
+                        'cleaning_metadata': result['cleaning_metadata'],
                         'scraped_at': result['scraped_at'].isoformat()
                     }),
                     json.dumps(result['images']) if result['images'] else None,
@@ -509,6 +742,9 @@ class ArticleScraper:
             self.stats['avg_content_length'] = int(
                 self.stats['total_content_length'] / self.stats['articles_success']
             )
+            self.stats['avg_chars_removed'] = int(
+                self.stats['total_chars_removed'] / self.stats['articles_success']
+            )
         
         # Log summary
         logger.info("batch_processing_completed", **self.stats)
@@ -550,13 +786,16 @@ def main():
             result = scraper.scrape_article(articles[0])
             print("\nTest Scraping Result:")
             print("=" * 50)
-            print(f"Title: {result['title'][:80]}...")
+            print(f"Original Title: {articles[0]['rss_feeds_raw_xml'].get('title', '')[:80]}...")
+            print(f"Cleaned Title: {result['title'][:80]}...")
             print(f"Success: {result['success']}")
-            print(f"Content Length: {result['content_length']}")
+            print(f"Final Content Length: {result['content_length']}")
+            print(f"Cleaning Reduction: {result['cleaning_metadata']['reduction_percent']}%")
+            print(f"Characters Removed: {result['cleaning_metadata']['chars_removed']}")
             print(f"Images Found: {len(result['images'])}")
             if result['error']:
                 print(f"Error: {result['error']}")
-            print("\nFirst 500 chars of content:")
+            print("\nFirst 500 chars of cleaned content:")
             print(result['content'][:500])
     else:
         # Normal batch processing
@@ -571,6 +810,8 @@ def main():
         print(f"RSS fallbacks used: {stats['content_fallback']}")
         if stats.get('avg_content_length'):
             print(f"Average content length: {stats['avg_content_length']} chars")
+        if stats.get('avg_chars_removed'):
+            print(f"Average chars removed by cleaning: {stats['avg_chars_removed']} chars")
         print(f"Processing time: {stats.get('processing_time_seconds', 0)} seconds")
         
         if stats['errors']:
