@@ -8,3 +8,16 @@ python3 -m src.database.sql.import_feeds - Import RSS feeds into rss_feeds table
   # Run as daemon
   python -m src.feeds.scheduler
 
+  # Run tests
+  python -m tests.test_article_scraper
+
+  # Scrape articles
+  python -m src.scraper.article_scraper --limit 10
+
+  # Run as daemon
+  python -m src.scraper.scraper_scheduler
+
+  ● The scheduler has a while unprocessed_count > 0 loop that keeps processing batches until ALL articles are done.
+
+  So to process all articles:
+  python -m src.scraper.scraper_scheduler --once

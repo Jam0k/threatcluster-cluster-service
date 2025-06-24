@@ -60,6 +60,41 @@ python -m src.feeds.scheduler
 - Comprehensive error handling and logging
 - Rate limiting and retry logic
 
+## Article Scraping
+
+The web scraping system is implemented in `src/scraper/`:
+
+- **article_scraper.py**: Scrapes full article content from URLs
+- **scraper_scheduler.py**: Daemon for periodic article scraping
+
+### Running Article Scraper
+
+```bash
+# Test article scraper
+python -m tests.test_article_scraper
+
+# Scrape single article (test mode)
+python -m src.scraper.article_scraper --test
+
+# Scrape specific number of articles
+python -m src.scraper.article_scraper --limit 50
+
+# Run scraper once
+python -m src.scraper.scraper_scheduler --once
+
+# Run as daemon (checks every 15 minutes)
+python -m src.scraper.scraper_scheduler
+```
+
+### Key Features
+
+- Extracts full article content from web pages
+- Falls back to RSS description if scraping fails
+- Extracts and stores image URLs
+- Domain-based rate limiting
+- Handles paywalls and anti-bot protection
+- Stores content in rss_feeds_clean table
+
 ## Project Structure
 
 ```

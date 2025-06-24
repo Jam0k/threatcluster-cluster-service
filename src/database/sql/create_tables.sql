@@ -34,7 +34,8 @@ CREATE TABLE cluster_data.rss_feeds_clean (
     rss_feeds_clean_images JSONB,
     rss_feeds_clean_extracted_entities JSONB,
     rss_feeds_clean_created_at TIMESTAMP DEFAULT NOW(),
-    rss_feeds_clean_processed BOOLEAN DEFAULT FALSE
+    rss_feeds_clean_processed BOOLEAN DEFAULT FALSE,
+    CONSTRAINT unique_raw_id UNIQUE (rss_feeds_clean_raw_id)
 );
 
 -- Entity Dictionary
