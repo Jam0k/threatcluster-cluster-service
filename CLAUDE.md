@@ -281,6 +281,103 @@ Entities are stored in `rss_feeds_clean_extracted_entities` as JSONB:
 }
 ```
 
+## Main CLI Application
+
+ThreatCluster provides two CLI interfaces:
+
+### Interactive Menu-Driven CLI (Recommended)
+
+The interactive CLI provides a user-friendly numbered menu system:
+
+```bash
+# Run the interactive CLI
+python -m src.main
+
+# Run with debug mode (verbose logging, full error traces)
+python -m src.main --debug
+
+# Run without screen clearing (keeps all output visible)
+python -m src.main --no-clear
+
+# Combine options
+python -m src.main --debug --no-clear
+```
+
+Features:
+- Numbered menu options for easy selection
+- Run individual components with a single keypress
+- Run full pipeline (fetch → scrape → extract → cluster → rank)
+- Start/stop continuous processing in background
+- View system status and recent results
+- Colored output for better visibility
+- **Persistent logging** - All operations logged to `logs/threatcluster_YYYYMMDD.log`
+- **Debug mode** - Shows full error traces and verbose logging
+- **No-clear mode** - Prevents screen clearing to see all output
+
+Menu Options:
+1. Fetch RSS Feeds - Get latest articles from configured feeds
+2. Scrape Articles - Extract full article content from URLs
+3. Extract Entities - Find security entities in articles
+4. Cluster Articles - Group related articles semantically
+5. Rank Articles - Score articles by importance
+6. Run Full Pipeline Once - Execute all steps sequentially
+7. Start Continuous Processing - Run pipeline repeatedly in background
+8. Stop Continuous Processing - Stop the background processing
+9. System Status - View counts and processing state
+10. View Recent Results - See top articles and clusters
+11. View Recent Log Entries - Display last 50 log entries with color coding
+
+### Command-Line Interface
+
+For automation and scripting, use the argument-based CLI:
+
+```bash
+# Initialize database with base data
+python -m src.main_cli init
+
+# Run complete pipeline once
+python -m src.main_cli pipeline
+
+# Run specific components
+python -m src.main_cli fetch    # RSS feed fetcher
+python -m src.main_cli scrape   # Article scraper
+python -m src.main_cli extract  # Entity extractor
+python -m src.main_cli cluster  # Semantic clusterer
+python -m src.main_cli rank     # Article ranker
+
+# Run as daemon (continuous operation)
+python -m src.main_cli daemon
+
+# Check system status
+python -m src.main_cli status
+```
+
+### Advanced Usage
+
+```bash
+# Run only specific components in pipeline
+python -m src.main_cli pipeline --components rss_fetcher article_scraper
+
+# Dry run to see what would be executed
+python -m src.main_cli pipeline --dry-run
+
+# Force run component ignoring dependencies
+python -m src.main_cli fetch --force
+
+# Output in JSON format
+python -m src.main_cli status --json
+
+# Set logging level
+python -m src.main_cli --log-level DEBUG pipeline
+```
+
+### Configuration
+
+The scheduler settings in `config/config.yaml` control component execution:
+- **interval_minutes**: How often each component runs in daemon mode
+- **enabled**: Whether the component is active
+- **delay_after_fetch_minutes**: Wait time between RSS fetch and article scraping
+
 ## Development Commands
 
 ```bash
@@ -345,3 +442,44 @@ python -m tests.test_cluster_report
 - Generates meaningful cluster names from extracted entities
 - Validates clusters based on coherence, size, and time windows
 - Supports batch processing for large volumes
+
+## Article Ranking
+
+The article ranking system prioritizes articles based on multiple factors to surface the most important security news.
+
+### Key Features
+
+- **Multi-factor scoring**: Combines recency, source credibility, entity importance, and keyword severity
+- **Weighted algorithm**: Configurable weights for each factor (default: 20% recency, 30% source, 30% entity, 20% keyword)
+- **Dynamic cluster rankings**: Calculated from average article scores and cluster coherence
+- **Comprehensive keyword library**: 361+ weighted keywords across 6 categories
+- **Transparent scoring**: Stores detailed factor breakdowns for each article
+
+### Running Article Ranking
+
+```bash
+# Run ranking once
+python -m src.ranking.ranking_scheduler --once
+
+# Run with specific time window (default: 72 hours)
+python -m src.ranking.ranking_scheduler --once --hours 168
+
+# Run as daemon (checks every 30 minutes)
+python -m src.ranking.ranking_scheduler
+
+# View ranking results
+python -m tests.test_ranking_report
+```
+
+### Scoring Components
+
+1. **Recency Score (0-100)**: Exponential decay over 24 hours
+2. **Source Credibility (0-100)**: Based on RSS feed credibility rating
+3. **Entity Importance (0-100)**: Weighted sum of extracted entities with bonuses for multiple high-importance entities
+4. **Keyword Severity (0-100)**: Matches against weighted keywords with double weight for title matches
+
+### Database Views
+
+Two views provide easy access to ranking data:
+- `cluster_data.articles_with_rankings`: Articles with full ranking details
+- `cluster_data.cluster_rankings`: Clusters ranked by average article score and coherence

@@ -101,12 +101,12 @@ def import_feeds():
     except Exception as e:
         print(f"\n✗ Import failed: {e}")
         conn.rollback()
-        return False
+        return 0
     finally:
         cursor.close()
         conn.close()
     
-    return True
+    return imported
 
 
 def verify_import():
@@ -152,14 +152,15 @@ if __name__ == "__main__":
     
     try:
         # Import feeds
-        if import_feeds():
-            print("\n✓ Import completed successfully!")
+        imported = import_feeds()
+        if imported > 0:
+            print(f"\n✓ Import completed successfully! Imported {imported} feeds.")
             
             # Show verification summary
             print("\nVerifying import...")
             verify_import()
         else:
-            print("\n✗ Import failed!")
+            print("\n✗ No feeds were imported!")
             sys.exit(1)
             
     except Exception as e:

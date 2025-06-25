@@ -218,13 +218,23 @@ class EntityImporter:
             logger.error(f"Error fetching category counts: {e}")
 
 
-def main():
-    """Run the entity import process."""
+def import_entities():
+    """Import entities and return the count of imported entities."""
     importer = EntityImporter()
     
     try:
-        importer.run_import()
+        total_imported = importer.run_import()
         logger.info("Entity import completed successfully")
+        return total_imported
+    except Exception as e:
+        logger.error(f"Entity import failed: {e}")
+        raise
+
+
+def main():
+    """Run the entity import process."""
+    try:
+        total = import_entities()
         return 0
     except Exception as e:
         logger.error(f"Entity import failed: {e}")

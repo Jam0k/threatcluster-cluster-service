@@ -70,3 +70,29 @@ scraping:
 monitoring:
   health_check_port: 8080
   metrics_retention_days: 30
+
+# Scheduler Configuration
+scheduler:
+  enabled: true
+  components:
+    rss_fetcher:
+      enabled: true
+      interval_minutes: 60
+      description: "Fetch RSS feeds from configured sources"
+    article_scraper:
+      enabled: true
+      interval_minutes: 30
+      delay_after_fetch_minutes: 5
+      description: "Scrape full article content from URLs"
+    entity_extractor:
+      enabled: true
+      interval_minutes: 45
+      description: "Extract entities from article content"
+    semantic_clusterer:
+      enabled: true
+      interval_minutes: 120
+      description: "Group related articles into clusters"
+    article_ranker:
+      enabled: true
+      interval_minutes: 60
+      description: "Calculate article and cluster rankings"
