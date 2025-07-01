@@ -333,34 +333,232 @@ class ArticleScraper:
         
         return content.strip()
     
-    def extract_images(self, soup: BeautifulSoup, base_url: str) -> List[str]:
-        """Extract image URLs from the page."""
-        image_urls = set()
+    def extract_banner_image(self, soup: BeautifulSoup, base_url: str) -> Optional[str]:
+        """Extract the main banner/hero image from the article."""
+        # 1. First try Open Graph and Twitter Card meta tags
+        meta_image = None
         
-        # Extract from img tags
-        for img in soup.find_all('img'):
-            src = img.get('src', '').strip()
-            if src:
-                full_url = urljoin(base_url, src)
-                if self.is_valid_image_url(full_url):
-                    image_urls.add(full_url)
+        # Open Graph image
+        og_image = soup.find('meta', property='og:image')
+        if og_image and og_image.get('content'):
+            meta_image = urljoin(base_url, og_image['content'].strip())
+            if self.is_valid_banner_image(meta_image):
+                logger.info("Found Open Graph image", url=base_url, image=meta_image)
+                return meta_image
+        
+        # Twitter Card image
+        twitter_image = soup.find('meta', attrs={'name': 'twitter:image'})
+        if twitter_image and twitter_image.get('content'):
+            meta_image = urljoin(base_url, twitter_image['content'].strip())
+            if self.is_valid_banner_image(meta_image):
+                logger.info("Found Twitter Card image", url=base_url, image=meta_image)
+                return meta_image
+        
+        # 2. Look for images with specific banner/hero attributes
+        # These are the most likely to be the main article image
+        banner_selectors = [
+            # Direct hero/banner image selectors
+            'img.featured-image',
+            'img.hero-image',
+            'img.banner-image',
+            'img.post-image',
+            'img.article-image',
+            'img.main-image',
+            'img.wp-post-image',  # WordPress featured image
+            'img[itemprop="image"]',  # Schema.org markup
+            # Images in hero/banner containers
+            '.hero img',
+            '.banner img',
+            '.featured-image img',
+            '.post-thumbnail img',
+            '.article-hero img',
+            '.entry-image img',
+            # WordPress patterns
+            '.wp-block-image img',
+            '.single-featured-image img'
+        ]
+        
+        for selector in banner_selectors:
+            banner_img = soup.select_one(selector)
+            if banner_img:
+                img_url = self._get_image_url(banner_img, base_url)
+                if img_url and self.is_valid_banner_image(img_url, check_context=True, img_tag=banner_img):
+                    logger.info("Found banner image by selector", url=base_url, selector=selector, image=img_url)
+                    return img_url
+        
+        # 3. Look in article header ONLY (not the entire content)
+        article_headers = soup.find_all(['header'], class_=re.compile(r'(entry|post|article)', re.I))
+        for header in article_headers[:3]:
+            # Only look for direct child images or images in figure tags
+            for img_container in header.find_all(['img', 'figure'], recursive=True)[:5]:
+                if img_container.name == 'figure':
+                    img = img_container.find('img')
+                else:
+                    img = img_container
+                
+                if img:
+                    img_url = self._get_image_url(img, base_url)
+                    if img_url and self.is_valid_banner_image(img_url, check_context=True, img_tag=img):
+                        logger.info("Found banner image in article header", url=base_url, image=img_url)
+                        return img_url
+        
+        # 4. Check for images immediately after the title
+        # Find the article title
+        title_tags = soup.find_all(['h1', 'h2'], class_=re.compile(r'(title|headline|entry-title)', re.I))
+        for title in title_tags[:2]:
+            # Look for image in the next few siblings
+            next_sibling = title.find_next_sibling()
+            for _ in range(5):  # Check next 5 siblings
+                if not next_sibling:
+                    break
+                    
+                img = None
+                if next_sibling.name == 'img':
+                    img = next_sibling
+                elif next_sibling.name in ['div', 'figure', 'p']:
+                    img = next_sibling.find('img')
+                
+                if img:
+                    img_url = self._get_image_url(img, base_url)
+                    if img_url and self.is_valid_banner_image(img_url, check_context=True, img_tag=img):
+                        logger.info("Found banner image after title", url=base_url, image=img_url)
+                        return img_url
+                
+                next_sibling = next_sibling.find_next_sibling()
+        
+        # 5. As a last resort, look for the first LARGE image in the main content
+        # But be very selective - only in article content areas
+        article_content = soup.find(['article', 'main', 'div'], 
+                                  class_=re.compile(r'^(post-content|article-content|entry-content|content-body)$', re.I))
+        
+        if article_content:
+            # Only check first 3 images in actual content
+            for img in article_content.find_all('img')[:3]:
+                img_url = self._get_image_url(img, base_url)
+                if img_url and self.is_valid_banner_image(img_url, check_context=True, img_tag=img):
+                    # Extra validation for content images - must be large
+                    width = img.get('width')
+                    height = img.get('height')
+                    if width and height:
+                        try:
+                            w = int(str(width).replace('px', ''))
+                            h = int(str(height).replace('px', ''))
+                            if w >= 600 and h >= 400:  # Must be quite large
+                                logger.info("Found large banner image in content", url=base_url, image=img_url)
+                                return img_url
+                        except:
+                            pass
+        
+        logger.info("No suitable banner image found", url=base_url)
+        return None
+    
+    def _get_image_url(self, img_tag, base_url: str) -> Optional[str]:
+        """Extract image URL from img tag, handling lazy loading."""
+        # Try regular src first
+        src = img_tag.get('src', '').strip()
+        if src and not src.startswith('data:'):
+            return urljoin(base_url, src)
+        
+        # Try data-src for lazy loading
+        data_src = img_tag.get('data-src', '').strip()
+        if data_src:
+            return urljoin(base_url, data_src)
+        
+        # Try srcset for responsive images
+        srcset = img_tag.get('srcset', '').strip()
+        if srcset:
+            # Get the largest image from srcset
+            parts = srcset.split(',')
+            if parts:
+                # Take the last one (usually largest)
+                last_part = parts[-1].strip().split(' ')[0]
+                return urljoin(base_url, last_part)
+        
+        return None
+    
+    def is_valid_banner_image(self, url: str, check_context: bool = False, img_tag=None) -> bool:
+        """Check if URL is suitable for a banner image."""
+        if not self.is_valid_image_url(url):
+            return False
+        
+        # Exclude images with certain patterns in URL
+        # Be VERY strict about what we exclude
+        excluded_url_patterns = [
+            'icon', 'logo', 'avatar', 'profile', 'author',
+            'button', 'arrow', 'emoji', 'badge',
+            '1x1', 'pixel', 'tracking', 'analytics',
+            'comment', 'user', 'thumbnail', 'thumb',
+            'social', 'share', 'facebook', 'twitter', 'linkedin',
+            'sidebar', 'widget', 'advertisement', 'sponsor',
+            'team', 'staff', 'contributor', 'writer', 'editor',
+            'headshot', 'portrait', 'bio'
+        ]
+        
+        url_lower = url.lower()
+        if any(pattern in url_lower for pattern in excluded_url_patterns):
+            return False
+        
+        # If we have the img tag, check its attributes
+        if check_context and img_tag:
+            # Check class and id
+            img_class = str(img_tag.get('class', '')).lower()
+            img_id = str(img_tag.get('id', '')).lower()
+            img_alt = str(img_tag.get('alt', '')).lower()
             
-            # Also check data-src for lazy loading
-            data_src = img.get('data-src', '').strip()
-            if data_src:
-                full_url = urljoin(base_url, data_src)
-                if self.is_valid_image_url(full_url):
-                    image_urls.add(full_url)
+            # Also check parent element classes
+            parent_class = ''
+            parent = img_tag.parent
+            if parent:
+                parent_class = str(parent.get('class', '')).lower()
+                # Check grandparent too
+                grandparent = parent.parent
+                if grandparent:
+                    parent_class += ' ' + str(grandparent.get('class', '')).lower()
+            
+            combined_attrs = f"{img_class} {img_id} {img_alt} {parent_class}"
+            
+            # Exclude based on attributes - be very strict
+            excluded_attr_patterns = excluded_url_patterns + [
+                'byline', 'meta', 'info', 'details',
+                'related', 'recommended', 'popular',
+                'aside', 'secondary', 'supplemental'
+            ]
+            
+            if any(pattern in combined_attrs for pattern in excluded_attr_patterns):
+                return False
+            
+            # Check dimensions if available
+            width = img_tag.get('width')
+            height = img_tag.get('height')
+            
+            if width and height:
+                try:
+                    w = int(str(width).replace('px', ''))
+                    h = int(str(height).replace('px', ''))
+                    
+                    # Exclude small images - be more strict
+                    if w < 300 or h < 200:
+                        return False
+                    
+                    # Exclude square images unless they're large
+                    aspect_ratio = w / h if h > 0 else 0
+                    if 0.8 <= aspect_ratio <= 1.2 and w < 600:
+                        return False
+                        
+                except ValueError:
+                    pass
         
-        # Extract from links to images
-        for link in soup.find_all('a', href=True):
-            href = link['href'].strip()
-            if any(href.lower().endswith(ext) for ext in self.IMAGE_EXTENSIONS):
-                full_url = urljoin(base_url, href)
-                if self.is_valid_image_url(full_url):
-                    image_urls.add(full_url)
+        return True
+    
+    def extract_images(self, soup: BeautifulSoup, base_url: str) -> List[str]:
+        """Extract image URLs from the page - now returns only banner image."""
+        banner_image = self.extract_banner_image(soup, base_url)
         
-        return list(image_urls)
+        # Return as list for backward compatibility
+        if banner_image:
+            return [banner_image]
+        else:
+            return []
     
     def is_valid_image_url(self, url: str) -> bool:
         """Check if URL is a valid image URL."""

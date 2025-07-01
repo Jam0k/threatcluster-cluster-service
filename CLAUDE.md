@@ -283,9 +283,9 @@ Entities are stored in `rss_feeds_clean_extracted_entities` as JSONB:
 
 ## Main CLI Application
 
-ThreatCluster provides two CLI interfaces:
+ThreatCluster provides an interactive menu-driven CLI interface:
 
-### Interactive Menu-Driven CLI (Recommended)
+### Interactive Menu-Driven CLI
 
 The interactive CLI provides a user-friendly numbered menu system:
 
@@ -327,48 +327,44 @@ Menu Options:
 10. View Recent Results - See top articles and clusters
 11. View Recent Log Entries - Display last 50 log entries with color coding
 
-### Command-Line Interface
+### Running Individual Components
 
-For automation and scripting, use the argument-based CLI:
+To run components individually without the interactive menu, you can execute them directly:
 
 ```bash
-# Initialize database with base data
-python -m src.main_cli init
+# Import feeds from config
+python -m src.database.sql.import_feeds
 
-# Run complete pipeline once
-python -m src.main_cli pipeline
+# Import entities from JSON files
+python -m src.database.sql.import_entities
 
-# Run specific components
-python -m src.main_cli fetch    # RSS feed fetcher
-python -m src.main_cli scrape   # Article scraper
-python -m src.main_cli extract  # Entity extractor
-python -m src.main_cli cluster  # Semantic clusterer
-python -m src.main_cli rank     # Article ranker
+# Run RSS feed fetcher once
+python -m src.feeds.scheduler --once
 
-# Run as daemon (continuous operation)
-python -m src.main_cli daemon
+# Run article scraper once
+python -m src.scraper.scraper_scheduler --once
 
-# Check system status
-python -m src.main_cli status
+# Run entity extraction once
+python -m src.entity_extraction.entity_scheduler --once
+
+# Run clustering once
+python -m src.clustering.cluster_scheduler --once
+
+# Run ranking once
+python -m src.ranking.ranking_scheduler --once
 ```
 
-### Advanced Usage
+### Daemon Mode
+
+Each component can also run as a daemon for continuous operation:
 
 ```bash
-# Run only specific components in pipeline
-python -m src.main_cli pipeline --components rss_fetcher article_scraper
-
-# Dry run to see what would be executed
-python -m src.main_cli pipeline --dry-run
-
-# Force run component ignoring dependencies
-python -m src.main_cli fetch --force
-
-# Output in JSON format
-python -m src.main_cli status --json
-
-# Set logging level
-python -m src.main_cli --log-level DEBUG pipeline
+# Run as daemons (periodic execution)
+python -m src.feeds.scheduler
+python -m src.scraper.scraper_scheduler
+python -m src.entity_extraction.entity_scheduler
+python -m src.clustering.cluster_scheduler
+python -m src.ranking.ranking_scheduler
 ```
 
 ### Configuration
