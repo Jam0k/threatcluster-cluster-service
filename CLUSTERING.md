@@ -131,16 +131,38 @@ python -m src.clustering.cluster_scheduler --once --full
 python -m src.clustering.cluster_scheduler --once --limit 100
 ```
 
-### Daemon Mode
+### Standalone Daemon Mode
 ```bash
 # Run continuously (checks every 30 minutes)
 python -m src.clustering.cluster_scheduler
 ```
 
+### As Part of Full Pipeline (Recommended)
+The clustering system is now integrated into the ThreatCluster background service:
+
+```bash
+# Run full pipeline in daemon mode
+python -m src.main --daemon
+
+# Or install as systemd service (production)
+./scripts/install-service.sh
+./scripts/threatcluster-ctl.sh start
+```
+
+When running as part of the full pipeline:
+- Clustering runs automatically after entity extraction
+- Default interval: 120 minutes (configurable)
+- Integrated logging and monitoring
+- Automatic restart on failure
+
 ### View Results
 ```bash
 # Generate cluster analysis report
 python -m tests.test_cluster_report
+
+# View logs from background service
+./scripts/threatcluster-ctl.sh logs
+tail -f logs/threatcluster_daemon_$(date +%Y%m%d).log
 ```
 
 ## Configuration
@@ -167,6 +189,14 @@ clustering:
   
   # Processing batch size
   batch_size: 50
+
+# Scheduler configuration (for background service)
+scheduler:
+  components:
+    semantic_clusterer:
+      enabled: true
+      interval_minutes: 120  # Run every 2 hours
+      description: "Group related articles into clusters"
 ```
 
 ## Interpreting Results

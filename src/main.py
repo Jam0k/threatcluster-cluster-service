@@ -618,6 +618,8 @@ def main():
                        help="Don't clear screen between operations")
     parser.add_argument('--debug', action='store_true',
                        help='Enable debug mode with verbose logging')
+    parser.add_argument('--daemon', action='store_true',
+                       help='Run in daemon mode (non-interactive continuous processing)')
     args = parser.parse_args()
     
     try:
@@ -628,8 +630,16 @@ def main():
         else:
             logging.getLogger().setLevel(logging.DEBUG)
         
-        cli = ThreatClusterCLI(no_clear=args.no_clear, debug=args.debug)
-        cli.run()
+        # Run in daemon mode if requested
+        if args.daemon:
+            from src.daemon import ThreatClusterDaemon
+            daemon = ThreatClusterDaemon(debug=args.debug)
+            print(f"{Fore.GREEN}Starting ThreatCluster in daemon mode...{Style.RESET_ALL}")
+            print(f"Check logs in: logs/threatcluster_daemon_{datetime.now().strftime('%Y%m%d')}.log")
+            daemon.run_continuous()
+        else:
+            cli = ThreatClusterCLI(no_clear=args.no_clear, debug=args.debug)
+            cli.run()
         
     except Exception as e:
         print(f"{Fore.RED}Fatal error: {str(e)}{Style.RESET_ALL}")

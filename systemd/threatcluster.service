@@ -1,0 +1,36 @@
+[Unit]
+Description=ThreatCluster Continuous Processing Daemon
+Documentation=https://threatcluster.com/docs
+After=network.target postgresql.service
+Wants=network.target
+
+[Service]
+Type=simple
+User=threatcluster
+Group=threatcluster
+WorkingDirectory=/opt/threatcluster
+Environment=PATH=/opt/threatcluster/venv/bin:/usr/local/bin:/usr/bin:/bin
+Environment=PYTHONPATH=/opt/threatcluster
+ExecStart=/opt/threatcluster/venv/bin/python -m src.daemon
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=threatcluster
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/opt/threatcluster/logs /opt/threatcluster/data
+RestrictSUIDSGID=true
+
+# Resource limits
+LimitNOFILE=65536
+TimeoutStartSec=300
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target
