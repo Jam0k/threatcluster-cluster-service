@@ -24,6 +24,9 @@ pyyaml==6.0.1
 python-dotenv==1.0.0
 click==8.1.7
 
+# AI & LLM
+openai==1.35.3
+
 # Logging & Monitoring
 structlog==23.1.0
 colorama==0.4.6

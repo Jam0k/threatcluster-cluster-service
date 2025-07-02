@@ -96,3 +96,17 @@ scheduler:
       enabled: true
       interval_minutes: 60
       description: "Calculate article and cluster rankings"
+    ai_summary:
+      enabled: true
+      interval_minutes: 60
+      batch_size: 10
+      description: "Generate AI-powered summaries for clusters"
+
+# AI Summary Configuration
+ai_summary:
+  model: "gpt-4o-mini"
+  max_articles_per_cluster: 10
+  max_chars_per_article: 500
+  temperature: 0.3
+  max_retries: 3
+  retry_delay_seconds: 2
