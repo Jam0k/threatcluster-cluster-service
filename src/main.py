@@ -31,6 +31,7 @@ from src.entity_extraction.entity_extractor import EntityExtractor
 from src.clustering.semantic_clusterer import SemanticClusterer
 from src.clustering.cluster_manager import ClusterManager
 from src.ranking.article_ranker import ArticleRanker
+from src.ioc_fetcher.ioc_fetcher import IOCFetcher
 
 # Initialize colorama for cross-platform colored output
 init(autoreset=True)
@@ -98,7 +99,8 @@ class ThreatClusterCLI:
             'extractor': EntityExtractor(),
             'clusterer': SemanticClusterer(),
             'cluster_manager': ClusterManager(),
-            'ranker': ArticleRanker()
+            'ranker': ArticleRanker(),
+            'ioc_fetcher': IOCFetcher()
         }
     
     def clear_screen(self):
@@ -122,12 +124,13 @@ class ThreatClusterCLI:
         print(f"{Fore.GREEN}3.{Style.RESET_ALL} Extract Entities")
         print(f"{Fore.GREEN}4.{Style.RESET_ALL} Cluster Articles")
         print(f"{Fore.GREEN}5.{Style.RESET_ALL} Rank Articles")
-        print(f"{Fore.GREEN}6.{Style.RESET_ALL} Run Full Pipeline Once")
-        print(f"{Fore.GREEN}7.{Style.RESET_ALL} Start Continuous Processing")
-        print(f"{Fore.GREEN}8.{Style.RESET_ALL} Stop Continuous Processing")
-        print(f"{Fore.GREEN}9.{Style.RESET_ALL} System Status")
-        print(f"{Fore.GREEN}10.{Style.RESET_ALL} View Recent Results")
-        print(f"{Fore.GREEN}11.{Style.RESET_ALL} View Recent Log Entries")
+        print(f"{Fore.GREEN}6.{Style.RESET_ALL} Fetch IOCs from Threat Feeds")
+        print(f"{Fore.GREEN}7.{Style.RESET_ALL} Run Full Pipeline Once")
+        print(f"{Fore.GREEN}8.{Style.RESET_ALL} Start Continuous Processing")
+        print(f"{Fore.GREEN}9.{Style.RESET_ALL} Stop Continuous Processing")
+        print(f"{Fore.GREEN}10.{Style.RESET_ALL} System Status")
+        print(f"{Fore.GREEN}11.{Style.RESET_ALL} View Recent Results")
+        print(f"{Fore.GREEN}12.{Style.RESET_ALL} View Recent Log Entries")
         print(f"{Fore.RED}0.{Style.RESET_ALL} Exit")
         print()
     
@@ -303,6 +306,27 @@ class ThreatClusterCLI:
                 print(f"  - Medium priority (50-69): {result.get('medium_priority_count', 0)}")
                 print(f"  - Low priority (< 50): {result.get('low_priority_count', 0)}")
                 print(f"  - Ranking errors: {result.get('ranking_errors', 0)}")
+            
+            elif component_name == 'ioc_fetcher':
+                print(f"\n{Fore.CYAN}Fetching IOCs from threat intelligence feeds...{Style.RESET_ALL}")
+                print(f"Processing {len(self.components['ioc_fetcher'].feeds_config.get('feeds', []))} configured feeds")
+                print(f"Minimum feed count: {self.components['ioc_fetcher'].min_feed_count}")
+                print(f"Filtering out local IPs, test domains, and invalid IOCs...")
+                
+                result = self.components['ioc_fetcher'].fetch_all_feeds()
+                
+                print(f"\n{Fore.GREEN}✓ RESULTS:{Style.RESET_ALL}")
+                print(f"  - Feeds processed: {result.get('feeds_processed', 0)}")
+                print(f"  - Feeds failed: {result.get('feeds_failed', 0)}")
+                print(f"  - Total IOCs fetched: {result.get('total_iocs_fetched', 0):,}")
+                print(f"  - IOCs validated: {result.get('total_iocs_validated', 0):,}")
+                print(f"  - IOCs stored: {result.get('total_iocs_stored', 0):,}")
+                if result.get('iocs_by_type'):
+                    print(f"  - IOCs by type:")
+                    for ioc_type, count in result['iocs_by_type'].items():
+                        print(f"    • {ioc_type}: {count:,}")
+                if result.get('errors'):
+                    print(f"  - Feed errors: {len(result['errors'])}")
             
             elapsed = time.time() - start_time
             print(f"\n{Fore.GREEN}Completed in {elapsed:.1f} seconds{Style.RESET_ALL}")
@@ -575,21 +599,24 @@ class ThreatClusterCLI:
                     self.run_component('ranker', 'Article Ranker')
                 
                 elif choice == '6':
-                    self.run_full_pipeline()
+                    self.run_component('ioc_fetcher', 'IOC Threat Feed Fetcher')
                 
                 elif choice == '7':
-                    self.start_continuous()
+                    self.run_full_pipeline()
                 
                 elif choice == '8':
-                    self.stop_continuous()
+                    self.start_continuous()
                 
                 elif choice == '9':
-                    self.display_status()
+                    self.stop_continuous()
                 
                 elif choice == '10':
-                    self.view_recent_results()
+                    self.display_status()
                 
                 elif choice == '11':
+                    self.view_recent_results()
+                
+                elif choice == '12':
                     self.view_logs()
                 
                 else:

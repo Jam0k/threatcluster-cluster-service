@@ -96,6 +96,10 @@ scheduler:
       enabled: true
       interval_minutes: 60
       description: "Calculate article and cluster rankings"
+    ioc_fetcher:
+      enabled: true
+      interval_minutes: 1440  # 24 hours
+      description: "Fetch IOCs from threat intelligence feeds"
     ai_summary:
       enabled: true
       interval_minutes: 60
