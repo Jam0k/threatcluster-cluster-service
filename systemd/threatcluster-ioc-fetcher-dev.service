@@ -1,0 +1,28 @@
+[Unit]
+Description=ThreatCluster IOC Fetcher Daemon (Development)
+Documentation=https://threatcluster.com/docs
+After=network.target postgresql.service
+Wants=network.target
+
+[Service]
+Type=simple
+User=%i
+Group=%i
+WorkingDirectory=/home/%i/Desktop/Threatcluster-2/cluster-service
+Environment=PATH=/home/%i/Desktop/Threatcluster-2/cluster-service/venv/bin:/usr/local/bin:/usr/bin:/bin
+Environment=PYTHONPATH=/home/%i/Desktop/Threatcluster-2/cluster-service
+ExecStart=/home/%i/Desktop/Threatcluster-2/cluster-service/venv/bin/python -m src.database.ioc_feeds.fetcher_scheduler
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=threatcluster-ioc-fetcher
+
+# Resource limits
+LimitNOFILE=65536
+TimeoutStartSec=300
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target
