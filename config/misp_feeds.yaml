@@ -9,6 +9,13 @@ feeds:
     active: true
     description: "APT groups and threat actors from MISP galaxy"
 
+  # Malware Families
+  - name: "MISP Malware Families"
+    url: "https://raw.githubusercontent.com/MISP/misp-galaxy/refs/heads/main/clusters/malpedia.json"
+    type: "malware_family"
+    active: true
+    description: "Malware families from Malpedia via MISP galaxy"
+
   # Future feeds can be added here:
   # - name: "MISP Malware"
   #   url: "https://raw.githubusercontent.com/MISP/misp-galaxy/refs/heads/main/clusters/malware.json"

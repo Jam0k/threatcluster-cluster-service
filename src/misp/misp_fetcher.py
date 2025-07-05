@@ -147,6 +147,8 @@ class MISPFetcher:
         # Parse the content based on type
         if feed_type == 'threat_actor':
             entities = self.parser.parse_threat_actors(content)
+        elif feed_type == 'malware_family':
+            entities = self.parser.parse_malware_families(content)
         else:
             logger.warning("unsupported_feed_type", 
                          feed_type=feed_type)

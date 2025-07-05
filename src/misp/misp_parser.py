@@ -27,6 +27,31 @@ class MISPParser:
         Returns:
             List of parsed threat actor entities
         """
+        return self._parse_misp_json(json_content, 'apt_group')
+    
+    def parse_malware_families(self, json_content: str) -> List[Dict]:
+        """
+        Parse MISP malware family JSON and extract entities.
+        
+        Args:
+            json_content: Raw JSON content from MISP galaxy
+            
+        Returns:
+            List of parsed malware family entities
+        """
+        return self._parse_misp_json(json_content, 'malware_family')
+    
+    def _parse_misp_json(self, json_content: str, entity_category: str) -> List[Dict]:
+        """
+        Parse MISP JSON and extract entities.
+        
+        Args:
+            json_content: Raw JSON content from MISP galaxy
+            entity_category: The category for these entities
+            
+        Returns:
+            List of parsed entities
+        """
         try:
             data = json.loads(json_content)
             
@@ -36,23 +61,24 @@ class MISPParser:
                            error="Expected dict at root level")
                 return []
             
-            # Get values array (contains threat actors)
+            # Get values array (contains entities)
             values = data.get('values', [])
             if not values:
-                logger.warning("no_threat_actors_found")
+                logger.warning("no_entities_found", category=entity_category)
                 return []
             
-            logger.info("parsing_threat_actors", count=len(values))
+            logger.info("parsing_entities", count=len(values), category=entity_category)
             
             parsed_entities = []
-            for actor_data in values:
-                parsed = self._parse_single_actor(actor_data)
+            for entity_data in values:
+                parsed = self._parse_single_entity(entity_data, entity_category)
                 if parsed:
                     parsed_entities.append(parsed)
             
-            logger.info("threat_actors_parsed", 
+            logger.info("entities_parsed", 
                        total=len(values),
-                       parsed=len(parsed_entities))
+                       parsed=len(parsed_entities),
+                       category=entity_category)
             
             return parsed_entities
             
@@ -63,44 +89,46 @@ class MISPParser:
             logger.error("parse_error", error=str(e))
             return []
     
-    def _parse_single_actor(self, actor_data: Dict) -> Optional[Dict]:
+    def _parse_single_entity(self, entity_data: Dict, entity_category: str) -> Optional[Dict]:
         """
-        Parse a single threat actor entry.
+        Parse a single entity entry.
         
         Args:
-            actor_data: Single threat actor dict from MISP
+            entity_data: Single entity dict from MISP
+            entity_category: Category for this entity
             
         Returns:
             Parsed entity dict or None if invalid
         """
         try:
             # Extract required fields
-            name = actor_data.get('value')
+            name = entity_data.get('value')
             if not name:
-                logger.warning("missing_actor_name", data=actor_data)
+                logger.warning("missing_entity_name", data=entity_data, category=entity_category)
                 return None
             
             # Extract metadata
-            meta = actor_data.get('meta', {})
+            meta = entity_data.get('meta', {})
             
             # Calculate importance weight based on available data
-            importance = self._calculate_importance(actor_data)
+            importance = self._calculate_importance(entity_data)
             
             # Build the entity
             entity = {
                 'entities_name': name,
-                'entities_category': 'apt_group',
+                'entities_category': entity_category,
                 'entities_source': 'misp',
                 'entities_importance_weight': importance,
-                'entities_json': actor_data  # Store complete JSON
+                'entities_json': entity_data  # Store complete JSON
             }
             
             return entity
             
         except Exception as e:
-            logger.error("actor_parse_error", 
+            logger.error("entity_parse_error", 
                         error=str(e),
-                        actor=actor_data.get('value', 'unknown'))
+                        entity=entity_data.get('value', 'unknown'),
+                        category=entity_category)
             return None
     
     def _calculate_importance(self, actor_data: Dict) -> int:
