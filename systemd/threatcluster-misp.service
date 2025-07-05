@@ -1,0 +1,36 @@
+[Unit]
+Description=ThreatCluster MISP Fetcher Daemon
+Documentation=https://threatcluster.com/docs
+After=network.target postgresql.service
+Wants=network.target
+
+[Service]
+Type=simple
+User=threatcluster
+Group=threatcluster
+WorkingDirectory=/opt/threatcluster/cluster-service
+Environment=PATH=/opt/threatcluster/cluster-service/venv/bin:/usr/local/bin:/usr/bin:/bin
+Environment=PYTHONPATH=/opt/threatcluster/cluster-service
+EnvironmentFile=/etc/threatcluster/environment
+ExecStart=/opt/threatcluster/cluster-service/venv/bin/python -m src.misp.misp_scheduler
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=threatcluster-misp
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/threatcluster/cluster-service/logs /var/log/threatcluster
+
+# Resource limits
+LimitNOFILE=65536
+TimeoutStartSec=300
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,43 @@
+# MISP Galaxy Feeds Configuration
+# Configuration for fetching threat intelligence from MISP galaxy repositories
+
+feeds:
+  # Threat Actors (APT Groups)
+  - name: "MISP Threat Actors"
+    url: "https://raw.githubusercontent.com/MISP/misp-galaxy/refs/heads/main/clusters/threat-actor.json"
+    type: "threat_actor"
+    active: true
+    description: "APT groups and threat actors from MISP galaxy"
+
+  # Future feeds can be added here:
+  # - name: "MISP Malware"
+  #   url: "https://raw.githubusercontent.com/MISP/misp-galaxy/refs/heads/main/clusters/malware.json"
+  #   type: "malware"
+  #   active: false
+  #   description: "Malware families and variants"
+  
+  # - name: "MISP Tools"
+  #   url: "https://raw.githubusercontent.com/MISP/misp-galaxy/refs/heads/main/clusters/tool.json"
+  #   type: "tool"
+  #   active: false
+  #   description: "Tools used by threat actors"
+  
+  # - name: "MISP Attack Patterns"
+  #   url: "https://raw.githubusercontent.com/MISP/misp-galaxy/refs/heads/main/clusters/attack-pattern.json"
+  #   type: "attack_pattern"
+  #   active: false
+  #   description: "Attack patterns and techniques"
+
+# Configuration settings
+config:
+  # HTTP request timeout in seconds
+  request_timeout: 30
+  
+  # User agent string for HTTP requests
+  user_agent: "ThreatCluster MISP Fetcher/1.0"
+  
+  # How often to fetch feeds (in hours)
+  fetch_interval_hours: 24
+  
+  # Batch size for database operations
+  batch_size: 100

@@ -1,0 +1,33 @@
+[Unit]
+Description=ThreatCluster MISP Fetcher Daemon (Development)
+Documentation=https://threatcluster.com/docs
+After=network.target postgresql.service
+Wants=network.target
+
+[Service]
+Type=simple
+User=%USER%
+Group=%USER%
+WorkingDirectory=%WORKDIR%
+Environment=PATH=%WORKDIR%/venv/bin:/usr/local/bin:/usr/bin:/bin
+Environment=PYTHONPATH=%WORKDIR%
+EnvironmentFile=%WORKDIR%/.env
+ExecStart=%WORKDIR%/venv/bin/python -m src.misp.misp_scheduler
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=threatcluster-misp-dev
+
+# Security hardening (relaxed for development)
+NoNewPrivileges=true
+PrivateTmp=false
+
+# Resource limits
+LimitNOFILE=65536
+TimeoutStartSec=300
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target
