@@ -1,99 +1,189 @@
-# Enhanced Security Keywords Configuration
+# Enhanced Security Keywords Configuration with Scoring
 # Used for filtering articles to ensure security relevance
 
-# Required security keywords - at least one must be present
-required_keywords:
-  # Attacks and Threats
-  - "breach"
-  - "attack"
-  - "exploit"
-  - "vulnerability"
-  - "zero-day"
-  - "0-day"
-  - "ransomware"
-  - "malware"
-  - "trojan"
-  - "virus"
-  - "backdoor"
-  - "rootkit"
-  - "botnet"
-  - "phishing"
-  - "spear-phishing"
-  - "social engineering"
-  - "ddos"
-  - "denial of service"
-  - "brute force"
-  - "password spray"
-  - "credential stuffing"
-  - "data leak"
-  - "data theft"
-  - "data exfiltration"
-  - "cyber attack"
-  - "cyberattack"
-  - "hack"
-  - "compromise"
-  - "incident"
-  - "intrusion"
-  - "infiltration"
-  - "espionage"
-  - "cybercrime"
-  - "threat actor"
-  - "apt"
-  - "advanced persistent threat"
-  
-  # Vulnerabilities
-  - "cve-"
-  - "security flaw"
-  - "security issue"
-  - "security vulnerability"
-  - "critical vulnerability"
-  - "rce"
-  - "remote code execution"
-  - "privilege escalation"
-  - "sql injection"
-  - "xss"
-  - "cross-site scripting"
-  - "buffer overflow"
-  - "security update"
-  - "security patch"
-  - "security advisory"
-  
-  # Security Operations
-  - "incident response"
-  - "threat intelligence"
-  - "security research"
-  - "malware analysis"
-  - "forensics"
-  - "ioc"
-  - "indicator of compromise"
-  - "security alert"
-  - "security warning"
-  - "security notice"
-  - "cisa"
-  - "cert"
-  - "ncsc"
-  - "mitre att&ck"
-  
-  # Specific Security Topics
-  - "ransomware gang"
-  - "ransomware group"
-  - "cybersecurity"
-  - "infosec"
-  - "opsec"
-  - "encryption"
-  - "cryptojacking"
-  - "supply chain attack"
-  - "watering hole"
-  - "drive-by download"
-  - "fileless malware"
-  - "living off the land"
-  - "lateral movement"
-  - "persistence"
-  - "command and control"
-  - "c2"
-  - "exfiltration"
-  - "data breach"
-  - "security breach"
+# Scoring thresholds by feed category
+scoring_thresholds:
+  cybersecurity: 30      # Dedicated security feeds - lower threshold
+  general_news: 70       # General tech news - higher threshold required
+  minimum_score: 25      # Absolute minimum for any feed
+
+# Positive scoring signals
+positive_signals:
+  # Security keywords with weight by severity
+  critical_keywords:  # Score: 30
+    - "zero-day"
+    - "0-day"
+    - "critical vulnerability"
+    - "rce"
+    - "remote code execution"
+    - "ransomware attack"
+    - "data breach"
+    - "security breach"
+    - "cyber attack"
+    - "cyberattack"
+    
+  high_keywords:  # Score: 20
+    - "vulnerability"
+    - "exploit"
+    - "breach"
+    - "ransomware"
+    - "malware"
+    - "trojan"
+    - "backdoor"
+    - "apt"
+    - "advanced persistent threat"
+    - "compromise"
+    - "hacked"
+    - "incident"
+    - "phishing attack"
+    - "phishing campaign"
+    - "phishing"
+    - "ddos"
+    - "denial of service"
+    - "attack"
+    - "threat actor"
+    - "security flaw"
+    - "security issue"
+    - "malware analysis"
+    - "threat intelligence"
+    - "forensics"
+    - "security"
+    - "cybersecurity"
+    - "infosec"
+    - "threat"
+    - "risk"
+    - "patch"
+    - "update"
+    - "advisory"
+    
+  # Action verbs that indicate security events (bonus points)
+  action_verbs:  # Score: +15 when near security keyword
+    - "discovered"
+    - "found"
+    - "detected"
+    - "exploited"
+    - "breached"
+    - "compromised"
+    - "patched"
+    - "fixed"
+    - "mitigated"
+    - "disclosed"
+    - "reported"
+    - "identified"
+    
+  # Technical indicators (regex patterns with scores)
+  technical_indicators:
+    cve_pattern: 
+      pattern: 'CVE-\d{4}-\d{4,}'
+      score: 25
+    ip_address:
+      pattern: '\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b'
+      score: 15
+    md5_hash:
+      pattern: '\b[a-fA-F0-9]{32}\b'
+      score: 20
+    sha256_hash:
+      pattern: '\b[a-fA-F0-9]{64}\b'
+      score: 20
+      
+  # Score multipliers
+  multipliers:
+    title_keyword: 2.0        # Keywords in title worth double
+    multiple_keywords: 1.5    # 3+ security keywords
+    action_verb_proximity: 1.3  # Action verb near security keyword
+
+# Negative scoring signals
+negative_signals:
+  # Commerce and retail terms
+  strong_commerce:  # Score: -40
+    - "prime day"
+    - "black friday"
+    - "cyber monday"
+    - "flash sale"
+    - "limited time offer"
+    - "clearance"
+    
+  medium_commerce:  # Score: -25
+    - "deal"
+    - "discount"
+    - "sale"
+    - "offer"
+    - "promo"
+    - "coupon"
+    - "% off"
+    - "percent off"
+    
+  weak_commerce:  # Score: -10
+    - "price"
+    - "cost"
+    - "buy"
+    - "shop"
+    - "purchase"
+    - "order"
+    
+  # Consumer product categories
+  strong_consumer:  # Score: -30
+    - "robot vacuum"
+    - "vacuum cleaner"
+    - "kitchen appliance"
+    - "home appliance"
+    - "smart home device"
+    - "gaming console"
+    - "headphones"
+    - "earbuds"
+    - "roomba"
+    - "air fryer"
+    - "instant pot"
+    - "sous vide"
+    - "coffee maker"
+    - "blender"
+    
+  medium_consumer:  # Score: -20
+    - "vacuum"
+    - "kitchen"
+    - "appliance"
+    - "gadget"
+    - "device"
+    - "smart speaker"
+    - "smart tv"
+    - "laptop"
+    - "smartphone"
+    - "tablet"
+    - "wearable"
+    - "fitness tracker"
+    - "smart watch"
+    - "echo"
+    - "alexa"
+    - "google home"
+    
+  # Review and buying guide terms
+  review_terms:  # Score: -35
+    - "buying guide"
+    - "top 10"
+    - "best of"
+    - "product review"
+    - "unboxing"
+    - "hands on"
+    - "first impressions"
+    - "versus"
+    - "comparison"
+    - "roundup"
+    - "recommendations"
+    
+  # Security-sounding consumer products (needs special handling)
+  misleading_security_terms:  # Score: -25
+    - "security camera"
+    - "security system" 
+    - "home security"
+    - "security features"
+    - "security device"
+    - "smart lock"
+    - "doorbell camera"
+    - "surveillance camera"
+    
+# Multipliers for negative signals in title
+negative_multipliers:
+  title_penalty: 1.5  # Negative signals in title get 1.5x penalty
   
 # Exclusion patterns - if these are present WITHOUT security keywords, exclude
 exclusion_patterns:

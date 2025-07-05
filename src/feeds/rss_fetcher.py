@@ -94,7 +94,7 @@ class RSSFeedFetcher:
         }
     
     def _load_enhanced_keywords(self):
-        """Load enhanced security keywords configuration."""
+        """Load enhanced security keywords configuration with scoring."""
         import yaml
         
         # Try to load enhanced keywords
@@ -103,20 +103,36 @@ class RSSFeedFetcher:
             with open(config_path, 'r') as f:
                 keywords_config = yaml.safe_load(f)
                 
-            self.required_keywords = [kw.lower() for kw in keywords_config.get('required_keywords', [])]
+            # Load scoring configuration
+            self.scoring_thresholds = keywords_config.get('scoring_thresholds', {})
+            self.positive_signals = keywords_config.get('positive_signals', {})
+            self.negative_signals = keywords_config.get('negative_signals', {})
+            self.negative_multipliers = keywords_config.get('negative_multipliers', {})
+            
+            # Load existing exclusion patterns
             self.exclusion_patterns = keywords_config.get('exclusion_patterns', [])
             self.non_security_titles = keywords_config.get('non_security_title_patterns', [])
             self.excluded_domains = keywords_config.get('excluded_domains', [])
             
+            # Build a flat list of all security keywords for backwards compatibility
+            self.required_keywords = []
+            for category in ['critical_keywords', 'high_keywords', 'medium_keywords', 'low_keywords']:
+                if category in self.positive_signals:
+                    self.required_keywords.extend([kw.lower() for kw in self.positive_signals[category]])
+            
             logger.info("loaded_enhanced_keywords",
-                       required=len(self.required_keywords),
-                       exclusions=len(self.exclusion_patterns))
+                       total_keywords=len(self.required_keywords),
+                       exclusions=len(self.exclusion_patterns),
+                       scoring_enabled=True)
         else:
             # Fallback to basic keywords
             self.required_keywords = self.security_keywords
             self.exclusion_patterns = []
             self.non_security_titles = []
             self.excluded_domains = []
+            self.scoring_thresholds = {'cybersecurity': 30, 'general_news': 70, 'minimum_score': 25}
+            self.positive_signals = {}
+            self.negative_signals = {}
             logger.warning("enhanced_keywords_not_found", path=config_path)
     
     def fetch_active_feeds(self) -> List[Dict[str, Any]]:
@@ -211,45 +227,182 @@ class RSSFeedFetcher:
         
         return None
     
-    def is_security_relevant(self, title: str, description: str, link: str = "") -> bool:
-        """Enhanced security relevance check with exclusion patterns."""
-        # Combine title and description for checking
-        text = f"{title} {description}".lower()
-        title_lower = title.lower()
-        
-        # Check excluded domains
+    def is_security_relevant(self, title: str, description: str, link: str = "", feed_category: str = "cybersecurity") -> bool:
+        """Enhanced security relevance check with scoring system."""
+        # Early domain exclusion check
         if link:
             for domain in self.excluded_domains:
                 if domain in link.lower():
                     logger.debug("excluded_domain", domain=domain, title=title[:50])
                     return False
         
-        # Check non-security title patterns
+        # Early title pattern exclusion
+        title_lower = title.lower()
         for pattern in self.non_security_titles:
             if re.match(pattern, title_lower):
                 logger.debug("non_security_title_pattern", pattern=pattern, title=title[:50])
                 return False
         
-        # Check exclusion patterns
+        # Calculate relevance score
+        score = self._calculate_relevance_score(title, description)
+        
+        # Get threshold based on feed category
+        if hasattr(self, 'scoring_thresholds') and self.scoring_thresholds:
+            threshold = self.scoring_thresholds.get(feed_category, self.scoring_thresholds.get('minimum_score', 30))
+        else:
+            # Fallback thresholds if config not loaded
+            threshold = 70 if feed_category == 'general_news' else 30
+        
+        # Log scoring details for debugging
+        logger.debug("article_scoring",
+                    title=title[:50],
+                    score=score,
+                    threshold=threshold,
+                    category=feed_category,
+                    passed=score >= threshold)
+        
+        # Store score for potential future use
+        self.last_relevance_score = score
+        
+        return score >= threshold
+    
+    def _calculate_relevance_score(self, title: str, description: str) -> int:
+        """Calculate relevance score based on positive and negative signals."""
+        score = 0
+        text = f"{title} {description}".lower()
+        title_lower = title.lower()
+        keyword_count = 0
+        
+        # Check positive signals
+        if self.positive_signals:
+            # Critical keywords (score: 30)
+            for keyword in self.positive_signals.get('critical_keywords', []):
+                if keyword.lower() in text:
+                    base_score = 30
+                    score += base_score
+                    keyword_count += 1
+                    # Double score if in title
+                    if keyword.lower() in title_lower:
+                        score += base_score
+                        logger.debug("critical_keyword_in_title", keyword=keyword, score=base_score*2)
+            
+            # High keywords (score: 20)
+            for keyword in self.positive_signals.get('high_keywords', []):
+                if keyword.lower() in text:
+                    base_score = 20
+                    score += base_score
+                    keyword_count += 1
+                    if keyword.lower() in title_lower:
+                        score += base_score
+            
+            # Medium keywords (score: 15)
+            for keyword in self.positive_signals.get('medium_keywords', []):
+                if keyword.lower() in text:
+                    base_score = 15
+                    score += base_score
+                    keyword_count += 1
+                    if keyword.lower() in title_lower:
+                        score += base_score
+            
+            # Low keywords (score: 10)
+            for keyword in self.positive_signals.get('low_keywords', []):
+                if keyword.lower() in text:
+                    base_score = 10
+                    score += base_score
+                    keyword_count += 1
+                    if keyword.lower() in title_lower:
+                        score += base_score
+            
+            # Check for action verbs (bonus: +15 each)
+            for verb in self.positive_signals.get('action_verbs', []):
+                if verb.lower() in text:
+                    score += 15
+                    logger.debug("action_verb_found", verb=verb)
+            
+            # Check technical indicators
+            for indicator_name, indicator_config in self.positive_signals.get('technical_indicators', {}).items():
+                pattern = indicator_config.get('pattern', '')
+                indicator_score = indicator_config.get('score', 0)
+                if pattern and re.search(pattern, text):
+                    score += indicator_score
+                    logger.debug("technical_indicator_found", indicator=indicator_name, score=indicator_score)
+        
+        # Apply multipliers
+        if keyword_count >= 3 and self.positive_signals.get('multipliers', {}).get('multiple_keywords'):
+            old_score = score
+            score = int(score * self.positive_signals['multipliers']['multiple_keywords'])
+            logger.debug("multiple_keywords_multiplier", old_score=old_score, new_score=score)
+        
+        # Check negative signals
+        if self.negative_signals:
+            # Strong commerce terms (score: -40)
+            for term in self.negative_signals.get('strong_commerce', []):
+                if term.lower() in text:
+                    penalty = -40
+                    score += penalty
+                    # Extra penalty if in title
+                    if term.lower() in title_lower and self.negative_multipliers.get('title_penalty'):
+                        score += int(penalty * (self.negative_multipliers['title_penalty'] - 1))
+                        logger.debug("commerce_term_in_title", term=term, penalty=penalty * self.negative_multipliers['title_penalty'])
+            
+            # Medium commerce terms (score: -25)
+            for term in self.negative_signals.get('medium_commerce', []):
+                if term.lower() in text:
+                    penalty = -25
+                    score += penalty
+                    if term.lower() in title_lower and self.negative_multipliers.get('title_penalty'):
+                        score += int(penalty * (self.negative_multipliers['title_penalty'] - 1))
+            
+            # Weak commerce terms (score: -10)
+            for term in self.negative_signals.get('weak_commerce', []):
+                if term.lower() in text:
+                    score += -10
+            
+            # Strong consumer products (score: -30)
+            for term in self.negative_signals.get('strong_consumer', []):
+                if term.lower() in text:
+                    penalty = -30
+                    score += penalty
+                    if term.lower() in title_lower and self.negative_multipliers.get('title_penalty'):
+                        score += int(penalty * (self.negative_multipliers['title_penalty'] - 1))
+            
+            # Medium consumer products (score: -20)
+            for term in self.negative_signals.get('medium_consumer', []):
+                if term.lower() in text:
+                    score += -20
+            
+            # Review terms (score: -35)
+            for term in self.negative_signals.get('review_terms', []):
+                if term.lower() in text:
+                    penalty = -35
+                    score += penalty
+                    if term.lower() in title_lower and self.negative_multipliers.get('title_penalty'):
+                        score += int(penalty * (self.negative_multipliers['title_penalty'] - 1))
+            
+            # Misleading security terms (score: -25) - common consumer products with "security" in name
+            for term in self.negative_signals.get('misleading_security_terms', []):
+                if term.lower() in text:
+                    # Check if it's in a real security context
+                    security_context = any(word in text for word in ['vulnerability', 'exploit', 'breach', 'hack', 'compromise', 'flaw'])
+                    if not security_context:
+                        penalty = -25
+                        score += penalty
+                        logger.debug("misleading_security_term", term=term, penalty=penalty)
+        
+        # Check old exclusion patterns (for backwards compatibility)
+        text_combined = f"{title} {description}".lower()
         for exclusion in self.exclusion_patterns:
             pattern = exclusion['pattern'].lower()
             unless_keywords = [kw.lower() for kw in exclusion.get('unless_contains', [])]
             
-            if pattern in text:
+            if pattern in text_combined:
                 # Check if any of the "unless" keywords are present
-                has_security_context = any(kw in text for kw in unless_keywords)
+                has_security_context = any(kw in text_combined for kw in unless_keywords)
                 if not has_security_context:
-                    logger.debug("excluded_pattern", pattern=pattern, title=title[:50])
-                    return False
+                    score -= 20  # Penalty for matching exclusion pattern
+                    logger.debug("exclusion_pattern_penalty", pattern=pattern)
         
-        # Check for required security keywords
-        has_security_keyword = any(keyword in text for keyword in self.required_keywords)
-        
-        if not has_security_keyword:
-            logger.debug("no_security_keywords", title=title[:50])
-            return False
-        
-        return True
+        return score
     
     def parse_pubdate(self, date_string: str) -> datetime:
         """Parse various RSS date formats into datetime object."""
@@ -434,13 +587,14 @@ class RSSFeedFetcher:
             description = article['xml_data']['description']
             link = article['xml_data']['link']
             
-            # Apply stricter filtering for feeds like NANOG that include non-security content
-            if not self.is_security_relevant(title, description, link):
+            # Pass feed category for category-specific thresholds
+            if not self.is_security_relevant(title, description, link, feed_category):
                 feed_stats['filtered'] += 1
                 logger.debug("article_filtered", 
                            feed_name=feed_name,
                            category=feed_category,
-                           title=title[:50])
+                           title=title[:50],
+                           score=getattr(self, 'last_relevance_score', 0))
                 continue
             
             articles_to_store.append(article)
@@ -451,10 +605,11 @@ class RSSFeedFetcher:
             feed_stats['stored'] = stored
             feed_stats['duplicates'] = duplicates
         
-        # Log success to file
+        # Log success to file with category info
         processing_time = round(time.time() - start_time, 2)
         file_logger.info(
-            f"{feed_name} | Fetched: {feed_stats['fetched']} | "
+            f"{feed_name} ({feed_category}) | Fetched: {feed_stats['fetched']} | "
+            f"Filtered: {feed_stats['filtered']} | "
             f"Stored: {feed_stats['stored']} | Status: SUCCESS | "
             f"Time: {processing_time}s"
         )
