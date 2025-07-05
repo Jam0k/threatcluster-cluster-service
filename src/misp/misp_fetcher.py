@@ -149,6 +149,10 @@ class MISPFetcher:
             entities = self.parser.parse_threat_actors(content)
         elif feed_type == 'malware_family':
             entities = self.parser.parse_malware_families(content)
+        elif feed_type == 'ransomware_group':
+            entities = self.parser.parse_ransomware_groups(content)
+        elif feed_type == 'mitre':
+            entities = self.parser.parse_mitre_techniques(content)
         else:
             logger.warning("unsupported_feed_type", 
                          feed_type=feed_type)

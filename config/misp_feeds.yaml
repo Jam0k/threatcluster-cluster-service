@@ -16,6 +16,20 @@ feeds:
     active: true
     description: "Malware families from Malpedia via MISP galaxy"
 
+  # Ransomware Groups
+  - name: "MISP Ransomware Groups"
+    url: "https://raw.githubusercontent.com/MISP/misp-galaxy/refs/heads/main/clusters/ransomware.json"
+    type: "ransomware_group"
+    active: true
+    description: "Ransomware groups from MISP galaxy"
+
+  # MITRE Techniques
+  - name: "MISP MITRE Techniques"
+    url: "https://raw.githubusercontent.com/MISP/misp-galaxy/refs/heads/main/clusters/tidal-technique.json"
+    type: "mitre"
+    active: true
+    description: "MITRE ATT&CK techniques from MISP galaxy"
+
   # Future feeds can be added here:
   # - name: "MISP Malware"
   #   url: "https://raw.githubusercontent.com/MISP/misp-galaxy/refs/heads/main/clusters/malware.json"

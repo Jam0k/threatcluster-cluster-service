@@ -41,6 +41,30 @@ class MISPParser:
         """
         return self._parse_misp_json(json_content, 'malware_family')
     
+    def parse_ransomware_groups(self, json_content: str) -> List[Dict]:
+        """
+        Parse MISP ransomware group JSON and extract entities.
+        
+        Args:
+            json_content: Raw JSON content from MISP galaxy
+            
+        Returns:
+            List of parsed ransomware group entities
+        """
+        return self._parse_misp_json(json_content, 'ransomware_group')
+    
+    def parse_mitre_techniques(self, json_content: str) -> List[Dict]:
+        """
+        Parse MISP MITRE technique JSON and extract entities.
+        
+        Args:
+            json_content: Raw JSON content from MISP galaxy
+            
+        Returns:
+            List of parsed MITRE technique entities
+        """
+        return self._parse_misp_json(json_content, 'mitre')
+    
     def _parse_misp_json(self, json_content: str, entity_category: str) -> List[Dict]:
         """
         Parse MISP JSON and extract entities.
