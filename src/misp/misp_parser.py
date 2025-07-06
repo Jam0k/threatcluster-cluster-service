@@ -65,6 +65,24 @@ class MISPParser:
         """
         return self._parse_misp_json(json_content, 'mitre')
     
+    def extract_technique_id_from_value(self, value: str) -> Optional[str]:
+        """
+        Extract MITRE technique ID from the value field.
+        Some MISP entries have IDs like "T1548" in their value field.
+        
+        Args:
+            value: The value field from MISP data
+            
+        Returns:
+            Technique ID if found, None otherwise
+        """
+        import re
+        # Look for pattern like T1234 or T1234.001
+        match = re.match(r'^(T\d{4}(?:\.\d{3})?)(?:\s|$)', value)
+        if match:
+            return match.group(1)
+        return None
+    
     def _parse_misp_json(self, json_content: str, entity_category: str) -> List[Dict]:
         """
         Parse MISP JSON and extract entities.
@@ -134,8 +152,8 @@ class MISPParser:
             # Extract metadata
             meta = entity_data.get('meta', {})
             
-            # Calculate importance weight based on available data
-            importance = self._calculate_importance(entity_data)
+            # Default importance weight
+            importance = 50
             
             # Build the entity
             entity = {
@@ -155,59 +173,6 @@ class MISPParser:
                         category=entity_category)
             return None
     
-    def _calculate_importance(self, actor_data: Dict) -> int:
-        """
-        Calculate importance weight for a threat actor.
-        
-        Based on:
-        - Number of synonyms (aliases)
-        - Number of references
-        - Number of targeted sectors
-        - Attribution confidence
-        - Related actors
-        
-        Args:
-            actor_data: Threat actor data
-            
-        Returns:
-            Importance weight (1-100)
-        """
-        weight = 50  # Base weight
-        meta = actor_data.get('meta', {})
-        
-        # More synonyms = more notable
-        synonyms = meta.get('synonyms', [])
-        if synonyms:
-            weight += min(len(synonyms) * 3, 15)  # Max +15
-        
-        # More references = more documented
-        refs = meta.get('refs', [])
-        if refs:
-            weight += min(len(refs) * 2, 10)  # Max +10
-        
-        # More targeted sectors = broader impact
-        sectors = meta.get('targeted-sector', [])
-        if sectors:
-            weight += min(len(sectors) * 2, 10)  # Max +10
-        
-        # Higher attribution confidence
-        attr_confidence = meta.get('attribution-confidence', '0')
-        try:
-            confidence = int(attr_confidence)
-            if confidence >= 90:
-                weight += 10
-            elif confidence >= 70:
-                weight += 5
-        except (ValueError, TypeError):
-            pass
-        
-        # Has related actors
-        related = actor_data.get('related', [])
-        if related:
-            weight += 5
-        
-        # Cap at 100
-        return min(weight, 100)
     
     def validate_actor(self, actor_data: Dict) -> Tuple[bool, Optional[str]]:
         """
