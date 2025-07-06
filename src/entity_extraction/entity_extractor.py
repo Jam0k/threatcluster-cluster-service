@@ -89,7 +89,7 @@ class EntityExtractor:
         return patterns
     
     def _load_predefined_entities(self) -> Dict[str, List[Dict]]:
-        """Load predefined entities from database."""
+        """Load predefined entities from database including synonyms."""
         entities = defaultdict(list)
         
         conn = psycopg2.connect(settings.database_url)
@@ -101,24 +101,49 @@ class EntityExtractor:
                     entities_id,
                     entities_name,
                     entities_category,
-                    entities_importance_weight
+                    entities_importance_weight,
+                    entities_json
                 FROM cluster_data.entities
-                WHERE entities_source = 'manual'
+                WHERE entities_source IN ('manual', 'misp')
                 ORDER BY entities_importance_weight DESC
             """)
             
+            total_synonyms = 0
             for row in cursor:
+                # Create patterns list for main name and synonyms
+                patterns = []
+                
+                # Add pattern for main name
+                patterns.append({
+                    'pattern': re.compile(r'\b' + re.escape(row['entities_name']) + r'\b', re.IGNORECASE),
+                    'matched_name': row['entities_name']
+                })
+                
+                # Extract synonyms from entities_json if available
+                if row['entities_json'] and isinstance(row['entities_json'], dict):
+                    meta = row['entities_json'].get('meta', {})
+                    synonyms = meta.get('synonyms', [])
+                    
+                    for synonym in synonyms:
+                        if synonym and isinstance(synonym, str) and synonym != row['entities_name']:
+                            patterns.append({
+                                'pattern': re.compile(r'\b' + re.escape(synonym) + r'\b', re.IGNORECASE),
+                                'matched_name': synonym
+                            })
+                            total_synonyms += 1
+                
                 entity_data = {
                     'id': row['entities_id'],
                     'name': row['entities_name'],
                     'weight': row['entities_importance_weight'],
-                    'pattern': re.compile(r'\b' + re.escape(row['entities_name']) + r'\b', re.IGNORECASE)
+                    'patterns': patterns  # Now contains multiple patterns
                 }
                 entities[row['entities_category']].append(entity_data)
             
             logger.info("loaded_predefined_entities", 
                        categories=len(entities),
-                       total_entities=sum(len(v) for v in entities.values()))
+                       total_entities=sum(len(v) for v in entities.values()),
+                       total_synonyms=total_synonyms)
             
         finally:
             cursor.close()
@@ -206,19 +231,27 @@ class EntityExtractor:
         return entities
     
     def extract_predefined_entities(self, text: str) -> List[Dict[str, Any]]:
-        """Extract predefined entities from text."""
+        """Extract predefined entities from text including synonyms."""
         entities = []
+        seen_entities = set()  # Track entities already found to avoid duplicates
         
         for category, entity_list in self.predefined_entities.items():
             for entity_data in entity_list:
-                if entity_data['pattern'].search(text):
-                    entities.append({
-                        'entity_name': entity_data['name'],
-                        'entity_category': category,
-                        'entities_id': entity_data['id'],
-                        'confidence': 0.95,
-                        'extraction_method': 'predefined'
-                    })
+                # Check all patterns (main name + synonyms)
+                for pattern_info in entity_data['patterns']:
+                    if pattern_info['pattern'].search(text):
+                        # Only add if we haven't seen this entity ID yet
+                        if entity_data['id'] not in seen_entities:
+                            entities.append({
+                                'entity_name': entity_data['name'],  # Always use primary name
+                                'entity_category': category,
+                                'entities_id': entity_data['id'],
+                                'confidence': 0.95,
+                                'extraction_method': 'predefined',
+                                'matched_text': pattern_info['matched_name']  # Track what was actually matched
+                            })
+                            seen_entities.add(entity_data['id'])
+                            break  # Move to next entity after first match
         
         return entities
     
