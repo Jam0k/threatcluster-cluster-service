@@ -726,8 +726,28 @@ class ArticleScraper:
         # Remove any HTML tags
         title = re.sub(r'<[^>]+>', '', title)
         
-        # Remove site names often appended to titles
-        title = re.sub(r'\s*[\|\-–—]\s*[^|\-–—]+$', '', title)
+        # Remove site names often appended to titles (only for known patterns)
+        # This regex specifically targets common news site suffixes
+        site_patterns = [
+            r'\s*\|\s*SecurityWeek\.Com$',
+            r'\s*\|\s*BleepingComputer$',
+            r'\s*\|\s*The Hacker News$',
+            r'\s*\|\s*Dark Reading$',
+            r'\s*\|\s*ZDNet$',
+            r'\s*\|\s*Threatpost$',
+            r'\s*\|\s*CyberScoop$',
+            r'\s*\|\s*Krebs on Security$',
+            r'\s*\|\s*Ars Technica$',
+            r'\s*\|\s*The Register$',
+            r'\s*\|\s*Wired$',
+            r'\s*\|\s*TechCrunch$',
+            r'\s*-\s*SecurityWeek\.Com$',
+            r'\s*-\s*BleepingComputer$',
+            r'\s*–\s*[A-Za-z\s]+\s*\|\s*WIRED$',  # For patterns like "Title – Category | WIRED"
+        ]
+        
+        for pattern in site_patterns:
+            title = re.sub(pattern, '', title, flags=re.IGNORECASE)
         
         # Clean whitespace
         title = ' '.join(title.split())

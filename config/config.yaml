@@ -5,7 +5,7 @@ pipeline:
   max_concurrent_scrapes: 5
   time_window_hours: 72
   
-# Cybersecurity Filter Keywords
+# Cybersecurity Filter Keywords (Fallback - primary filtering uses security_keywords.yaml)
 security_keywords:
   - cybersecurity
   - malware
@@ -29,7 +29,7 @@ clustering:
   similarity_threshold: 0.75
   min_cluster_size: 2
   max_cluster_size: 12
-  time_window_hours: 72
+  time_window_hours: 168
   coherence_threshold: 0.65
   batch_size: 50
 
