@@ -53,7 +53,7 @@ class AISummaryService:
         WHERE c.has_ai_summary = FALSE 
             AND c.clusters_is_active = TRUE
         GROUP BY c.clusters_id
-        ORDER BY c.clusters_created_at DESC
+        ORDER BY c.clusters_created_at ASC
         LIMIT %s
         """
         
