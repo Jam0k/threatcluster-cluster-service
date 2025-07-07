@@ -176,6 +176,60 @@ class ClusterManager:
         
         return intersection / union if union > 0 else 0.0
     
+    def check_key_entity_match(self, entities1: List[Dict], entities2: List[Dict]) -> float:
+        """Check for matches in key entities (companies, threat actors, malware)."""
+        if not entities1 or not entities2:
+            return 0.0
+        
+        # Key entity categories for evolving stories
+        key_categories = {
+            'company': 1.0,           # Company names are very distinctive
+            'apt_group': 1.0,         # APT groups are specific
+            'ransomware_group': 1.0,  # Ransomware groups are specific
+            'malware_family': 0.9,    # Malware families are important
+            'vulnerability_type': 0.8, # Vulnerability types matter
+            'attack_type': 0.7        # Attack types are somewhat generic
+        }
+        
+        # Extract key entities from both sets
+        key_entities1 = {}
+        key_entities2 = {}
+        
+        for entity in entities1:
+            category = entity.get('entity_category', '')
+            if category in key_categories:
+                name = entity.get('entity_name', '').lower()
+                if name:
+                    key_entities1[name] = category
+        
+        for entity in entities2:
+            category = entity.get('entity_category', '')
+            if category in key_categories:
+                name = entity.get('entity_name', '').lower()
+                if name:
+                    key_entities2[name] = category
+        
+        if not key_entities1 or not key_entities2:
+            return 0.0
+        
+        # Calculate weighted match score
+        total_weight = 0.0
+        match_weight = 0.0
+        
+        for name, category in key_entities1.items():
+            weight = key_categories.get(category, 0.5)
+            total_weight += weight
+            if name in key_entities2:
+                match_weight += weight
+        
+        # Also check reverse direction
+        for name, category in key_entities2.items():
+            if name not in key_entities1:  # Avoid double counting
+                weight = key_categories.get(category, 0.5)
+                total_weight += weight
+        
+        return match_weight / total_weight if total_weight > 0 else 0.0
+    
     def is_duplicate_cluster(self, new_cluster: Dict[str, Any], 
                            existing_cluster: Dict[str, Any]) -> Tuple[bool, float]:
         """Check if new cluster is duplicate of existing cluster."""
@@ -214,29 +268,54 @@ class ClusterManager:
         title_similarity = self.calculate_title_similarity(new_titles, existing_titles)
         source_overlap = self.calculate_source_overlap(new_feeds, existing_feeds)
         
-        # Weighted average of signals
-        weights = {
-            'article': 0.3,
-            'entity': 0.3,
-            'title': 0.3,
-            'source': 0.1
-        }
+        # Check for key entity matches (evolving stories)
+        key_entity_match = self.check_key_entity_match(new_entities, existing_entities)
         
-        overall_similarity = (
-            weights['article'] * article_overlap +
-            weights['entity'] * entity_similarity +
-            weights['title'] * title_similarity +
-            weights['source'] * source_overlap
-        )
+        # Adjusted weights for evolving stories
+        if key_entity_match > 0.8:  # Strong entity match
+            # For evolving stories, reduce article overlap weight
+            weights = {
+                'article': 0.05,  # Very low weight for article overlap
+                'entity': 0.50,   # High weight for entity similarity
+                'title': 0.30,    # Medium weight for title similarity
+                'source': 0.05,   # Low weight for source overlap
+                'key_entity': 0.10  # Bonus for key entity matches
+            }
+            overall_similarity = (
+                weights['article'] * article_overlap +
+                weights['entity'] * entity_similarity +
+                weights['title'] * title_similarity +
+                weights['source'] * source_overlap +
+                weights['key_entity'] * key_entity_match
+            )
+        else:
+            # Standard weights for unrelated stories
+            weights = {
+                'article': 0.2,   # Reduced from 0.3
+                'entity': 0.4,    # Increased from 0.3
+                'title': 0.3,     # Same as before
+                'source': 0.1     # Same as before
+            }
+            overall_similarity = (
+                weights['article'] * article_overlap +
+                weights['entity'] * entity_similarity +
+                weights['title'] * title_similarity +
+                weights['source'] * source_overlap
+            )
         
-        is_duplicate = overall_similarity >= self.duplicate_threshold
+        # Lower threshold for strong entity matches
+        threshold = 0.65 if key_entity_match > 0.8 else self.duplicate_threshold
+        is_duplicate = overall_similarity >= threshold
         
-        if is_duplicate:
-            logger.info("duplicate_cluster_detected",
+        if overall_similarity >= 0.5:  # Log potential matches for debugging
+            logger.info("cluster_similarity_check",
                        article_overlap=article_overlap,
                        entity_similarity=entity_similarity,
                        title_similarity=title_similarity,
-                       overall_similarity=overall_similarity)
+                       key_entity_match=key_entity_match,
+                       overall_similarity=overall_similarity,
+                       is_duplicate=is_duplicate,
+                       threshold=threshold)
         
         return is_duplicate, overall_similarity
     

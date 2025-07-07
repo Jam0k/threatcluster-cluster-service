@@ -26,10 +26,10 @@ security_keywords:
 # Semantic Clustering
 clustering:
   model_name: "sentence-transformers/all-mpnet-base-v2"
-  similarity_threshold: 0.75
+  similarity_threshold: 0.70  # Lowered from 0.75 for better evolving story detection
   min_cluster_size: 2
-  max_cluster_size: 12
-  time_window_hours: 168
+  max_cluster_size: 20  # Increased from 12 to handle larger ongoing stories
+  time_window_hours: 336  # Increased from 168 (1 week) to 336 (2 weeks)
   coherence_threshold: 0.65
   batch_size: 50
 

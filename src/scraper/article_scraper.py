@@ -16,7 +16,7 @@ from logging.handlers import RotatingFileHandler
 import os
 import html
 from datetime import datetime, timezone
-from typing import Dict, List, Optional, Tuple, Any, Set
+from typing import Dict, List, Optional, Tuple, Any
 from urllib.parse import urlparse, urljoin
 from collections import defaultdict
 import re
@@ -335,10 +335,10 @@ class ArticleScraper:
     
     def extract_banner_image(self, soup: BeautifulSoup, base_url: str) -> Optional[str]:
         """Extract the main banner/hero image from the article."""
-        # 1. First try Open Graph and Twitter Card meta tags
+        # 1. First try Open Graph and Twitter Card meta tags - these are most reliable
         meta_image = None
         
-        # Open Graph image
+        # Open Graph image (most standard)
         og_image = soup.find('meta', property='og:image')
         if og_image and og_image.get('content'):
             meta_image = urljoin(base_url, og_image['content'].strip())
@@ -346,12 +346,20 @@ class ArticleScraper:
                 logger.info("Found Open Graph image", url=base_url, image=meta_image)
                 return meta_image
         
-        # Twitter Card image
+        # Twitter Card image (fallback)
         twitter_image = soup.find('meta', attrs={'name': 'twitter:image'})
         if twitter_image and twitter_image.get('content'):
             meta_image = urljoin(base_url, twitter_image['content'].strip())
             if self.is_valid_banner_image(meta_image):
                 logger.info("Found Twitter Card image", url=base_url, image=meta_image)
+                return meta_image
+        
+        # Schema.org image
+        schema_image = soup.find('meta', attrs={'itemprop': 'image'})
+        if schema_image and schema_image.get('content'):
+            meta_image = urljoin(base_url, schema_image['content'].strip())
+            if self.is_valid_banner_image(meta_image):
+                logger.info("Found Schema.org image", url=base_url, image=meta_image)
                 return meta_image
         
         # 2. Look for images with specific banner/hero attributes
@@ -366,6 +374,8 @@ class ArticleScraper:
             'img.main-image',
             'img.wp-post-image',  # WordPress featured image
             'img[itemprop="image"]',  # Schema.org markup
+            'img.attachment-post-thumbnail',  # WordPress
+            'img.size-full',  # Often used for main images
             # Images in hero/banner containers
             '.hero img',
             '.banner img',
@@ -373,9 +383,21 @@ class ArticleScraper:
             '.post-thumbnail img',
             '.article-hero img',
             '.entry-image img',
+            '.article-header img',
+            '.post-header img',
             # WordPress patterns
             '.wp-block-image img',
-            '.single-featured-image img'
+            '.single-featured-image img',
+            '.wp-post-image img',
+            # Common news site patterns
+            '.lead-image img',
+            '.primary-image img',
+            '.story-image img',
+            '.article-lead-image img',
+            # Figure tags often contain main images
+            'figure.featured img',
+            'figure.main-image img',
+            'figure.post-thumbnail img'
         ]
         
         for selector in banner_selectors:
@@ -485,13 +507,17 @@ class ArticleScraper:
         # Be VERY strict about what we exclude
         excluded_url_patterns = [
             'icon', 'logo', 'avatar', 'profile', 'author',
-            'button', 'arrow', 'emoji', 'badge',
-            '1x1', 'pixel', 'tracking', 'analytics',
+            'button', 'arrow', 'emoji', 'badge', 'symbol',
+            '1x1', '2x2', 'pixel', 'tracking', 'analytics',
             'comment', 'user', 'thumbnail', 'thumb',
-            'social', 'share', 'facebook', 'twitter', 'linkedin',
-            'sidebar', 'widget', 'advertisement', 'sponsor',
+            'social', 'share', 'facebook', 'twitter', 'linkedin', 'pinterest',
+            'sidebar', 'widget', 'advertisement', 'sponsor', 'ad-',
             'team', 'staff', 'contributor', 'writer', 'editor',
-            'headshot', 'portrait', 'bio'
+            'headshot', 'portrait', 'bio', 'mugshot',
+            'footer', 'header-logo', 'nav-', 'menu-',
+            'related', 'recommended', 'more-stories',
+            'newsletter', 'subscribe', 'signup',
+            'partner', 'client-logo', 'brand-'
         ]
         
         url_lower = url.lower()
@@ -520,12 +546,27 @@ class ArticleScraper:
             # Exclude based on attributes - be very strict
             excluded_attr_patterns = excluded_url_patterns + [
                 'byline', 'meta', 'info', 'details',
-                'related', 'recommended', 'popular',
-                'aside', 'secondary', 'supplemental'
+                'related', 'recommended', 'popular', 'trending',
+                'aside', 'secondary', 'supplemental',
+                'advertisement', 'promo', 'sponsor',
+                'share-button', 'social-icon',
+                'author-image', 'contributor-photo',
+                'video-thumbnail', 'play-button'
             ]
             
             if any(pattern in combined_attrs for pattern in excluded_attr_patterns):
                 return False
+            
+            # Positive signals - if these are present, it's likely a banner
+            positive_patterns = [
+                'featured', 'hero', 'banner', 'lead',
+                'main-image', 'primary', 'cover',
+                'story-image', 'article-image'
+            ]
+            
+            if any(pattern in combined_attrs for pattern in positive_patterns):
+                # Even with positive signals, still check dimensions
+                pass  # Continue to dimension check below
             
             # Check dimensions if available
             width = img_tag.get('width')
@@ -536,19 +577,90 @@ class ArticleScraper:
                     w = int(str(width).replace('px', ''))
                     h = int(str(height).replace('px', ''))
                     
-                    # Exclude small images - be more strict
-                    if w < 300 or h < 200:
+                    # Exclude small images - be strict about banner size
+                    if w < 400 or h < 250:
                         return False
                     
-                    # Exclude square images unless they're large
+                    # Banner images typically have landscape orientation
                     aspect_ratio = w / h if h > 0 else 0
-                    if 0.8 <= aspect_ratio <= 1.2 and w < 600:
+                    
+                    # Exclude square images unless they're very large
+                    if 0.9 <= aspect_ratio <= 1.1 and w < 800:
                         return False
+                    
+                    # Exclude tall images (likely sidebar or info graphics)
+                    if aspect_ratio < 0.8:
+                        return False
+                    
+                    # Prefer landscape images (typical for banners)
+                    if aspect_ratio >= 1.3:
+                        # This is good - likely a banner
+                        return True
                         
                 except ValueError:
                     pass
         
         return True
+    
+    def extract_image_from_rss(self, xml_data: Dict[str, Any]) -> Optional[str]:
+        """Extract image URL from RSS feed data before scraping the page."""
+        try:
+            # 1. Check for media:content (most reliable for RSS images)
+            media_content = xml_data.get('media_content', [])
+            if isinstance(media_content, list):
+                for media in media_content:
+                    if isinstance(media, dict) and media.get('type', '').startswith('image/'):
+                        image_url = media.get('url')
+                        if image_url and self.is_valid_banner_image(image_url):
+                            logger.info("Found image in media:content", image=image_url)
+                            return image_url
+            
+            # 2. Check media:thumbnail
+            media_thumbnail = xml_data.get('media_thumbnail', [])
+            if isinstance(media_thumbnail, list) and media_thumbnail:
+                for thumb in media_thumbnail:
+                    if isinstance(thumb, dict):
+                        image_url = thumb.get('url')
+                        if image_url and self.is_valid_banner_image(image_url):
+                            logger.info("Found image in media:thumbnail", image=image_url)
+                            return image_url
+            
+            # 3. Check enclosures (common for podcast/media feeds)
+            enclosures = xml_data.get('enclosures', [])
+            if isinstance(enclosures, list):
+                for enclosure in enclosures:
+                    if isinstance(enclosure, dict) and enclosure.get('type', '').startswith('image/'):
+                        image_url = enclosure.get('href') or enclosure.get('url')
+                        if image_url and self.is_valid_banner_image(image_url):
+                            logger.info("Found image in enclosure", image=image_url)
+                            return image_url
+            
+            # 4. Check for images in RSS content/summary
+            content = xml_data.get('content', '')
+            if not content:
+                content = xml_data.get('summary', '')
+            
+            if content and isinstance(content, str):
+                # Parse the RSS content HTML
+                soup = BeautifulSoup(content, 'html.parser')
+                img = soup.find('img')
+                if img and img.get('src'):
+                    src = img['src']
+                    # Make URL absolute if needed
+                    if not src.startswith('http'):
+                        link = xml_data.get('link', '')
+                        if link:
+                            src = urljoin(link, src)
+                    
+                    if self.is_valid_banner_image(src):
+                        logger.info("Found image in RSS content", image=src)
+                        return src
+            
+            return None
+            
+        except Exception as e:
+            logger.debug("Error extracting image from RSS", error=str(e))
+            return None
     
     def extract_images(self, soup: BeautifulSoup, base_url: str) -> List[str]:
         """Extract image URLs from the page - now returns only banner image."""
@@ -771,6 +883,9 @@ class ArticleScraper:
         
         logger.info("scraping_article", url=url, title=title[:50])
         
+        # First, try to extract image from RSS data
+        rss_image = self.extract_image_from_rss(xml_data)
+        
         # Parse domain for rate limiting
         domain = urlparse(url).netloc
         self.enforce_rate_limit(domain)
@@ -786,7 +901,16 @@ class ArticleScraper:
         if response:
             try:
                 # Extract content and images
-                scraped_content, image_urls = self.extract_content(response.text, url)
+                scraped_content, page_images = self.extract_content(response.text, url)
+                
+                # Use RSS image if found, otherwise use scraped images
+                if rss_image:
+                    image_urls = [rss_image]
+                    logger.info("using_rss_image", url=url, image=rss_image)
+                else:
+                    image_urls = page_images
+                    if image_urls:
+                        logger.info("using_scraped_image", url=url, image=image_urls[0])
                 
                 # Validate content length
                 if len(scraped_content) >= self.MIN_CONTENT_LENGTH:
@@ -812,6 +936,9 @@ class ArticleScraper:
             scraped_content = rss_description
             self.stats['content_fallback'] += 1
             logger.info("using_rss_fallback", url=url)
+            # If we have RSS image but no scraped images, keep the RSS image
+            if rss_image and not image_urls:
+                image_urls = [rss_image]
         
         # Clean the content
         cleaned_content, cleaning_metadata = self.clean_content(scraped_content)
