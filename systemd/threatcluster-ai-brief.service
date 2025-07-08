@@ -1,0 +1,28 @@
+[Unit]
+Description=ThreatCluster AI Daily Brief Generator
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+User=james
+Group=james
+WorkingDirectory=/home/james/Desktop/Threatcluster-2/cluster-service
+Environment="PATH=/home/james/.local/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="PYTHONPATH=/home/james/Desktop/Threatcluster-2/cluster-service"
+ExecStart=/usr/bin/python3 -m src.ai_summary.daily_brief_scheduler
+Restart=always
+RestartSec=300
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=threatcluster-ai-brief
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/james/Desktop/Threatcluster-2/cluster-service/logs
+
+[Install]
+WantedBy=multi-user.target
