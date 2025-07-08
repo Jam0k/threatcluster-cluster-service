@@ -1,0 +1,33 @@
+[Unit]
+Description=ThreatCluster Daily Email Service
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=threatcluster
+Group=threatcluster
+WorkingDirectory=/opt/threatcluster/cluster-service
+Environment="PATH=/opt/threatcluster/cluster-service/venv/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="PYTHONPATH=/opt/threatcluster/cluster-service"
+
+# Run the daily email scheduler
+ExecStart=/opt/threatcluster/cluster-service/venv/bin/python -m src.email_service.daily_email_scheduler
+
+# Restart on failure
+Restart=on-failure
+RestartSec=30
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=threatcluster-email
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/threatcluster/cluster-service/logs
+
+[Install]
+WantedBy=multi-user.target

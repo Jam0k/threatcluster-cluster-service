@@ -32,6 +32,7 @@ from src.clustering.semantic_clusterer import SemanticClusterer
 from src.clustering.cluster_manager import ClusterManager
 from src.ranking.article_ranker import ArticleRanker
 from src.ioc_fetcher.ioc_fetcher import IOCFetcher
+from src.email_service.email_service import EmailService
 
 # Initialize colorama for cross-platform colored output
 init(autoreset=True)
@@ -100,7 +101,8 @@ class ThreatClusterCLI:
             'clusterer': SemanticClusterer(),
             'cluster_manager': ClusterManager(),
             'ranker': ArticleRanker(),
-            'ioc_fetcher': IOCFetcher()
+            'ioc_fetcher': IOCFetcher(),
+            'email_service': EmailService()
         }
     
     def clear_screen(self):
@@ -132,6 +134,7 @@ class ThreatClusterCLI:
         print(f"{Fore.GREEN}11.{Style.RESET_ALL} View Recent Results")
         print(f"{Fore.GREEN}12.{Style.RESET_ALL} View Recent Log Entries")
         print(f"{Fore.GREEN}13.{Style.RESET_ALL} Generate Daily AI Brief")
+        print(f"{Fore.GREEN}14.{Style.RESET_ALL} Send Daily Email Bulletins")
         print(f"{Fore.RED}0.{Style.RESET_ALL} Exit")
         print()
     
@@ -567,6 +570,39 @@ class ThreatClusterCLI:
         except Exception as e:
             print(f"{Fore.RED}Error reading log file: {str(e)}{Style.RESET_ALL}")
     
+    def send_daily_emails(self):
+        """Send daily email bulletins to subscribed users."""
+        print(f"\n{Fore.YELLOW}{'='*60}{Style.RESET_ALL}")
+        print(f"{Fore.YELLOW}Sending Daily Email Bulletins{Style.RESET_ALL}")
+        print(f"{Fore.YELLOW}{'='*60}{Style.RESET_ALL}")
+        
+        start_time = time.time()
+        
+        try:
+            print(f"\n{Fore.CYAN}Checking for subscribed users...{Style.RESET_ALL}")
+            print(f"Getting top 5 clusters from last 24 hours...")
+            print(f"Generating AI summaries for each cluster...")
+            
+            # Run the email service asynchronously
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            loop.run_until_complete(self.components['email_service'].send_daily_bulletins())
+            
+            elapsed = time.time() - start_time
+            print(f"\n{Fore.GREEN}✓ Email bulletins sent successfully!{Style.RESET_ALL}")
+            print(f"{Fore.GREEN}Completed in {elapsed:.1f} seconds{Style.RESET_ALL}")
+            
+        except Exception as e:
+            elapsed = time.time() - start_time
+            print(f"\n{Fore.RED}✗ Error sending emails after {elapsed:.1f} seconds:{Style.RESET_ALL}")
+            print(f"{Fore.RED}  {str(e)}{Style.RESET_ALL}")
+            
+            if self.debug:
+                print(f"\n{Fore.RED}Full traceback:{Style.RESET_ALL}")
+                print(traceback.format_exc())
+            
+            logger.error("email_service_error", error=str(e), traceback=traceback.format_exc())
+    
     def generate_daily_brief(self):
         """Generate a daily AI threat intelligence brief."""
         print(f"\n{Fore.CYAN}Generating Daily AI Threat Brief{Style.RESET_ALL}")
@@ -664,6 +700,9 @@ class ThreatClusterCLI:
                 
                 elif choice == '13':
                     self.generate_daily_brief()
+                
+                elif choice == '14':
+                    self.send_daily_emails()
                 
                 else:
                     print(f"{Fore.RED}Invalid choice. Please try again.{Style.RESET_ALL}")

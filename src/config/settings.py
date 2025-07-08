@@ -12,14 +12,24 @@ class Settings:
         self.base_dir = Path(__file__).parent.parent.parent
         self.config_dir = self.base_dir / "config"
         
-        # Database Configuration
+        # Database Configuration - Cluster Data
         self.db_config = {
-            'host': os.getenv('DB_HOST'),
-            'port': int(os.getenv('DB_PORT', 5432)),
-            'database': os.getenv('DB_NAME'),
-            'username': os.getenv('DB_USER'),
-            'password': os.getenv('DB_PASSWORD'),
-            'sslmode': os.getenv('DB_SSLMODE', 'require')
+            'host': os.getenv('CLUSTER_DB_HOST', os.getenv('DB_HOST')),
+            'port': int(os.getenv('CLUSTER_DB_PORT', os.getenv('DB_PORT', 5432))),
+            'database': os.getenv('CLUSTER_DB_NAME', os.getenv('DB_NAME')),
+            'username': os.getenv('CLUSTER_DB_USER', os.getenv('DB_USER')),
+            'password': os.getenv('CLUSTER_DB_PASSWORD', os.getenv('DB_PASSWORD')),
+            'sslmode': os.getenv('CLUSTER_DB_SSLMODE', os.getenv('DB_SSLMODE', 'require'))
+        }
+        
+        # Database Configuration - User Data
+        self.user_db_config = {
+            'host': os.getenv('USER_DB_HOST'),
+            'port': int(os.getenv('USER_DB_PORT', 5432)),
+            'database': os.getenv('USER_DB_NAME'),
+            'username': os.getenv('USER_DB_USER'),
+            'password': os.getenv('USER_DB_PASSWORD'),
+            'sslmode': os.getenv('USER_DB_SSLMODE', 'require')
         }
         
         # Validate required database settings
@@ -36,6 +46,14 @@ class Settings:
         self.log_level = os.getenv('LOG_LEVEL', 'INFO')
         self.log_file = os.getenv('LOG_FILE')
         self.environment = os.getenv('ENVIRONMENT', 'production')
+        
+        # OpenAI API Key
+        self.openai_api_key = os.getenv('OPENAI_API_KEY')
+        
+        # Email Settings
+        self.postmark_api_token = os.getenv('POSTMARK_API_TOKEN')
+        self.email_from_address = os.getenv('EMAIL_FROM_ADDRESS', 'alerts@threatcluster.io')
+        self.daily_email_send_time = os.getenv('DAILY_EMAIL_SEND_TIME', '09:00')
         
         # Cache directories (must be set in .env)
         self.transformers_cache = os.getenv('TRANSFORMERS_CACHE')
@@ -74,11 +92,20 @@ class Settings:
     
     @property
     def database_url(self) -> str:
-        """Build PostgreSQL connection string"""
+        """Build PostgreSQL connection string for cluster database"""
         return (
             f"postgresql://{self.db_config['username']}:{self.db_config['password']}"
             f"@{self.db_config['host']}:{self.db_config['port']}"
             f"/{self.db_config['database']}?sslmode={self.db_config['sslmode']}"
+        )
+    
+    @property
+    def user_database_url(self) -> str:
+        """Build PostgreSQL connection string for user database"""
+        return (
+            f"postgresql://{self.user_db_config['username']}:{self.user_db_config['password']}"
+            f"@{self.user_db_config['host']}:{self.user_db_config['port']}"
+            f"/{self.user_db_config['database']}?sslmode={self.user_db_config['sslmode']}"
         )
 
 # Global settings instance

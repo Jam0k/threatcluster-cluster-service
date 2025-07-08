@@ -479,3 +479,47 @@ python -m tests.test_ranking_report
 Two views provide easy access to ranking data:
 - `cluster_data.articles_with_rankings`: Articles with full ranking details
 - `cluster_data.cluster_rankings`: Clusters ranked by average article score and coherence
+
+## Daily Email Service
+
+The daily email service sends threat intelligence bulletins to subscribed users:
+
+### Key Features
+
+- **User Subscription**: Users can enable/disable daily emails via profile settings
+- **AI Summaries**: Generates concise summaries of top clusters using OpenAI
+- **Responsive HTML**: Professional email template with mobile support
+- **Smart Scheduling**: Configurable send time (default 9:00 AM UTC)
+- **Postmark Integration**: Reliable email delivery via Postmark API
+
+### Running Daily Email Service
+
+```bash
+# Test email service (send immediately)
+python -m src.email_service.email_service
+
+# Run scheduler once  
+python -m src.email_service.daily_email_scheduler --once
+
+# Run as daemon (sends daily at configured time)
+python -m src.email_service.daily_email_scheduler
+```
+
+### Configuration
+
+Add to your `.env` file:
+```bash
+# Email Configuration (Postmark)
+POSTMARK_API_TOKEN=your-postmark-api-token
+EMAIL_FROM_ADDRESS=alerts@threatcluster.io
+DAILY_EMAIL_SEND_TIME=09:00  # 24-hour format UTC
+```
+
+### Email Content
+
+Each daily bulletin includes:
+- Top 5 highest-scoring clusters from the last 24 hours
+- AI-generated summaries for each cluster
+- Links to full cluster analysis on ThreatCluster
+- Article counts and creation times
+- User subscription management link

@@ -1,6 +1,7 @@
 # Core Dependencies
 psycopg2-binary==2.9.7
 SQLAlchemy==2.0.20
+asyncpg==0.30.0
 
 # Web Scraping & RSS
 requests==2.31.0
@@ -26,6 +27,10 @@ click==8.1.7
 
 # AI & LLM
 openai==1.35.3
+
+# Email
+aiohttp==3.9.5
+jinja2==3.1.4
 
 # Logging & Monitoring
 structlog==23.1.0
