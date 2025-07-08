@@ -10,5 +10,7 @@ It generates three tailored briefs for different audiences:
 
 from .ai_summary_service import AISummaryService
 from .ai_summary_scheduler import run_scheduler
+from .daily_brief_service import DailyBriefService
+from .daily_brief_scheduler import run_scheduler as run_daily_brief_scheduler
 
-__all__ = ['AISummaryService', 'run_scheduler']
+__all__ = ['AISummaryService', 'run_scheduler', 'DailyBriefService', 'run_daily_brief_scheduler']

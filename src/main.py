@@ -131,6 +131,7 @@ class ThreatClusterCLI:
         print(f"{Fore.GREEN}10.{Style.RESET_ALL} System Status")
         print(f"{Fore.GREEN}11.{Style.RESET_ALL} View Recent Results")
         print(f"{Fore.GREEN}12.{Style.RESET_ALL} View Recent Log Entries")
+        print(f"{Fore.GREEN}13.{Style.RESET_ALL} Generate Daily AI Brief")
         print(f"{Fore.RED}0.{Style.RESET_ALL} Exit")
         print()
     
@@ -566,6 +567,48 @@ class ThreatClusterCLI:
         except Exception as e:
             print(f"{Fore.RED}Error reading log file: {str(e)}{Style.RESET_ALL}")
     
+    def generate_daily_brief(self):
+        """Generate a daily AI threat intelligence brief."""
+        print(f"\n{Fore.CYAN}Generating Daily AI Threat Brief{Style.RESET_ALL}")
+        print(f"{Fore.YELLOW}{'='*60}{Style.RESET_ALL}")
+        
+        try:
+            from src.ai_summary.daily_brief_service import DailyBriefService
+            import asyncio
+            from datetime import date
+            
+            service = DailyBriefService()
+            
+            # Run the async generation
+            result = asyncio.run(service.generate_daily_brief())
+            
+            if result['status'] == 'success':
+                print(f"\n{Fore.GREEN}✓ Successfully generated daily brief!{Style.RESET_ALL}")
+                print(f"  Article ID: {result['article_id']}")
+                print(f"  Date: {result['date']}")
+                print(f"  Severity Score: {result['severity_score']}")
+                print(f"  Threats Analyzed: {result['threats_analyzed']}")
+                print(f"\n{Fore.CYAN}The daily brief will appear in your feed shortly.{Style.RESET_ALL}")
+                logger.info("daily_brief_generated", 
+                          article_id=result['article_id'],
+                          severity_score=result['severity_score'],
+                          threats_analyzed=result['threats_analyzed'])
+            elif result['status'] == 'exists':
+                print(f"\n{Fore.YELLOW}ℹ Daily brief already exists for {result['date']}{Style.RESET_ALL}")
+                print(f"Check your feed for today's Cluster AI Daily Threat Brief.")
+            elif result['status'] == 'no_data':
+                print(f"\n{Fore.YELLOW}⚠ No threat data available for {result['date']}{Style.RESET_ALL}")
+                print(f"Try again later after more articles have been processed.")
+            else:
+                print(f"\n{Fore.RED}✗ Unexpected status: {result['status']}{Style.RESET_ALL}")
+                
+        except Exception as e:
+            print(f"\n{Fore.RED}✗ Error generating daily brief: {str(e)}{Style.RESET_ALL}")
+            if self.debug:
+                import traceback
+                traceback.print_exc()
+            logger.error("daily_brief_generation_failed", error=str(e))
+    
     def run(self):
         """Main interactive loop."""
         self.print_header()
@@ -618,6 +661,9 @@ class ThreatClusterCLI:
                 
                 elif choice == '12':
                     self.view_logs()
+                
+                elif choice == '13':
+                    self.generate_daily_brief()
                 
                 else:
                     print(f"{Fore.RED}Invalid choice. Please try again.{Style.RESET_ALL}")
