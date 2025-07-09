@@ -4,14 +4,14 @@ After=network.target postgresql.service
 
 [Service]
 Type=simple
-User=threatcluster
-Group=threatcluster
-WorkingDirectory=/opt/threatcluster/cluster-service
-Environment="PATH=/opt/threatcluster/cluster-service/venv/bin:/usr/local/bin:/usr/bin:/bin"
-Environment="PYTHONPATH=/opt/threatcluster/cluster-service"
+User=root
+Group=root
+WorkingDirectory=/root/threatcluster-cluster-service
+Environment="PATH=/root/threatcluster-cluster-service/venv/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="PYTHONPATH=/root/threatcluster-cluster-service"
 
 # Run the daily email scheduler
-ExecStart=/opt/threatcluster/cluster-service/venv/bin/python -m src.email_service.daily_email_scheduler
+ExecStart=/root/threatcluster-cluster-service/venv/bin/python -m src.email_service.daily_email_scheduler
 
 # Restart on failure
 Restart=on-failure
@@ -22,12 +22,9 @@ StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=threatcluster-email
 
-# Security settings
+# Security settings - minimal for root user
 NoNewPrivileges=true
 PrivateTmp=true
-ProtectSystem=strict
-ProtectHome=true
-ReadWritePaths=/opt/threatcluster/cluster-service/logs
 
 [Install]
 WantedBy=multi-user.target

@@ -6,7 +6,7 @@ Runs daily to send threat intelligence bulletins to subscribed users
 import logging
 import asyncio
 import sys
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 import signal
 from typing import Optional
 
