@@ -10,7 +10,6 @@ import asyncio
 from openai import AsyncOpenAI
 import psycopg2
 from psycopg2.extras import RealDictCursor, Json
-import hashlib
 
 from src.config.settings import settings
 
@@ -401,14 +400,11 @@ Make it engaging and informative, suitable for both technical and executive audi
         else:
             summary = f"Daily threat intelligence brief analyzing {len(threats_data['clusters'])} threat clusters and {len(threats_data['articles'])} high-priority articles from the last 24 hours."
         
-        # Generate a unique URL for the brief
-        url_hash = hashlib.md5(f"cluster-ai-brief-{target_date}".encode()).hexdigest()[:8]
-        article_url = f"https://cluster.ai/briefs/{target_date}-{url_hash}"
-        
         # Insert into database as a regular article
         conn = psycopg2.connect(settings.database_url)
         try:
-            with conn.cursor() as cur:
+            with conn.cursor(cursor_factory=RealDictCursor) as cur:
+                # First, insert with a placeholder URL
                 # Insert raw feed entry
                 cur.execute("""
                     INSERT INTO cluster_data.rss_feeds_raw (
@@ -423,7 +419,7 @@ Make it engaging and informative, suitable for both technical and executive audi
                     feed_id,
                     Json({
                         "title": title,
-                        "link": article_url,
+                        "link": "placeholder",  # Will update after we get clean_id
                         "description": summary,
                         "published": target_date.isoformat(),
                         "author": "Cluster AI",
@@ -437,7 +433,7 @@ Make it engaging and informative, suitable for both technical and executive audi
                     }),
                     datetime.combine(target_date, datetime.min.time())
                 ))
-                raw_id = cur.fetchone()[0]
+                raw_id = cur.fetchone()['rss_feeds_raw_id']
                 
                 # Insert clean article
                 cur.execute("""
@@ -459,10 +455,24 @@ Make it engaging and informative, suitable for both technical and executive audi
                         "entities": entities,
                         "extraction_timestamp": datetime.utcnow().isoformat(),
                         "entity_count": len(entities),
-                        "categories": list(set(e['entity_category'] for e in entities))
+                        "categories": list(set(e['entity_category'] for e in entities)),
+                        "no_clustering": True,  # Flag to prevent clustering
+                        "article_type": "ai_daily_brief"
                     })
                 ))
-                clean_id = cur.fetchone()[0]
+                clean_id = cur.fetchone()['rss_feeds_clean_id']
+                
+                # Update the raw entry with the correct article URL
+                article_url = f"https://threatcluster.io/articles/{clean_id}"
+                cur.execute("""
+                    UPDATE cluster_data.rss_feeds_raw 
+                    SET rss_feeds_raw_xml = jsonb_set(
+                        rss_feeds_raw_xml, 
+                        '{link}', 
+                        %s::jsonb
+                    )
+                    WHERE rss_feeds_raw_id = %s
+                """, (json.dumps(article_url), raw_id))
                 
                 # Insert article ranking with high score
                 cur.execute("""

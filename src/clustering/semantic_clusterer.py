@@ -101,6 +101,9 @@ class SemanticClusterer:
                 JOIN cluster_data.rss_feeds rf ON rfr.rss_feeds_raw_feed_id = rf.rss_feeds_id
                 WHERE rfc.rss_feeds_clean_extracted_entities IS NOT NULL
                 AND rfr.rss_feeds_raw_published_date >= %s
+                -- Exclude articles marked with no_clustering flag
+                AND (rfc.rss_feeds_clean_extracted_entities->>'no_clustering' IS NULL 
+                     OR rfc.rss_feeds_clean_extracted_entities->>'no_clustering' = 'false')
                 AND NOT EXISTS (
                     SELECT 1 FROM cluster_data.cluster_articles ca
                     JOIN cluster_data.clusters c ON ca.cluster_articles_cluster_id = c.clusters_id
@@ -130,8 +133,9 @@ class SemanticClusterer:
         title = title_data.get('title', '') if isinstance(title_data, dict) else str(title_data)
         content = content_data.get('content', '') if isinstance(content_data, dict) else str(content_data)
         
-        # Weight title more heavily by including it multiple times
-        weighted_text = f"{title}\n{title}\n{title}\n\n{content}"
+        # Weight title more heavily by including it 1.5 times
+        # Using partial repetition to achieve 1.5x weight
+        weighted_text = f"{title}\n{title[:len(title)//2]}\n\n{content}"
         
         return weighted_text
     
