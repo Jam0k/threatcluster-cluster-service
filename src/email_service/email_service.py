@@ -42,7 +42,7 @@ class EmailService:
         """
         
         rows = await conn.fetch(query)
-        return [dict(row) for row in rows]
+        return [{str(k) if k is not None else 'unknown': v for k, v in dict(row).items()} for row in rows]
     
     async def get_top_clusters(self, conn: asyncpg.Connection, limit: int = 5) -> List[Dict[str, Any]]:
         """Get top clusters from the last 24 hours based on article publish time"""
@@ -137,7 +137,7 @@ class EmailService:
         
         for row in rows:
             # Convert row to dict and ensure no None keys
-            cluster = {k: v for k, v in dict(row).items() if k is not None}
+            cluster = {str(k) if k is not None else 'unknown': v for k, v in dict(row).items()}
             
             # Get articles for this cluster
             articles_query = """
@@ -160,7 +160,7 @@ class EmailService:
             
             article_rows = await conn.fetch(articles_query, cluster['clusters_id'])
             # Ensure no None keys in article dicts
-            cluster['articles'] = [{k: v for k, v in dict(article).items() if k is not None} for article in article_rows]
+            cluster['articles'] = [{str(k) if k is not None else 'unknown': v for k, v in dict(article).items()} for article in article_rows]
             
             clusters.append(cluster)
             
@@ -680,7 +680,7 @@ class EmailService:
         """
         
         rows = await conn.fetch(query, limit)
-        return [dict(row) for row in rows]
+        return [{str(k) if k is not None else 'unknown': v for k, v in dict(row).items()} for row in rows]
     
     async def get_trending_entities(self, conn: asyncpg.Connection, limit: int = 10) -> List[Dict[str, Any]]:
         """Get trending security entities from the last 24 hours"""
@@ -733,7 +733,7 @@ class EmailService:
         """
         
         rows = await conn.fetch(query, limit)
-        return [dict(row) for row in rows]
+        return [{str(k) if k is not None else 'unknown': v for k, v in dict(row).items()} for row in rows]
     
     async def send_daily_bulletins(self):
         """Main method to send daily bulletins to all subscribed users"""
