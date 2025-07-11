@@ -667,7 +667,7 @@ class EmailService:
             
             # Additional debugging - check if json serialization works
             try:
-                json_test = json.dumps(data)
+                json.dumps(data)  # Test serialization without storing result
                 logger.debug("JSON serialization test passed")
             except Exception as json_error:
                 logger.error(f"JSON serialization failed: {json_error}")

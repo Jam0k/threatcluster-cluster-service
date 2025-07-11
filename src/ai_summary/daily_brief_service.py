@@ -64,7 +64,7 @@ class DailyBriefService:
                 if result:
                     return result[0]
                 
-                # Create the feed if it doesn't exist
+                # Create the feed if it doesn't exist - use ON CONFLICT to handle race conditions
                 cur.execute("""
                     INSERT INTO cluster_data.rss_feeds (
                         rss_feeds_name,
@@ -80,11 +80,15 @@ class DailyBriefService:
                         true,
                         100,  -- Maximum credibility for AI-generated content
                         CURRENT_TIMESTAMP
-                    ) RETURNING rss_feeds_id
+                    ) 
+                    ON CONFLICT (rss_feeds_url) DO UPDATE SET
+                        rss_feeds_is_active = true,
+                        rss_feeds_updated_at = CURRENT_TIMESTAMP
+                    RETURNING rss_feeds_id
                 """)
                 feed_id = cur.fetchone()[0]
                 conn.commit()
-                logger.info(f"Created Cluster AI feed with ID: {feed_id}")
+                logger.info(f"Created or updated Cluster AI feed with ID: {feed_id}")
                 return feed_id
         finally:
             conn.close()
