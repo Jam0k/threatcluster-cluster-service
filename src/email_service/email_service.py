@@ -18,6 +18,22 @@ import openai
 logger = logging.getLogger(__name__)
 
 
+def clean_dict(data: Any) -> Any:
+    """Recursively clean dictionaries to ensure no None keys"""
+    if isinstance(data, dict):
+        # Create new dict with cleaned keys and recursively cleaned values
+        return {
+            (str(k) if k is not None else 'unknown'): clean_dict(v) 
+            for k, v in data.items()
+        }
+    elif isinstance(data, list):
+        # Recursively clean list items
+        return [clean_dict(item) for item in data]
+    else:
+        # Return primitive values as-is
+        return data
+
+
 class EmailService:
     """Service for sending daily threat bulletins"""
     
@@ -608,28 +624,59 @@ class EmailService:
     
     async def send_email(self, to_email: str, subject: str, html_body: str) -> bool:
         """Send email via Postmark API"""
+        # Ensure postmark_token is not None
+        if not self.postmark_token:
+            logger.error("Postmark token is missing!")
+            return False
+            
         headers = {
             "Accept": "application/json",
             "Content-Type": "application/json",
-            "X-Postmark-Server-Token": self.postmark_token
+            "X-Postmark-Server-Token": str(self.postmark_token)  # Ensure it's a string
         }
         
+        # Debug headers
+        logger.debug(f"Headers: {headers}")
+        for h_key, h_val in headers.items():
+            logger.debug(f"Header {h_key}: type={type(h_val)}, value={repr(h_val)}")
+        
         data = {
-            "From": self.from_email,
-            "To": to_email,
-            "Subject": subject,
-            "HtmlBody": html_body,
+            "From": str(self.from_email) if self.from_email else "",
+            "To": str(to_email) if to_email else "",
+            "Subject": str(subject) if subject else "",
+            "HtmlBody": str(html_body) if html_body else "",
             "MessageStream": "outbound"  # Changed from "broadcast" to "outbound"
         }
         
         try:
             # Debug logging
-            logger.debug(f"Email data - From: {self.from_email}, To: {to_email}, Subject: {subject[:50]}...")
+            logger.debug(f"Email data - From: {self.from_email}, To: {to_email}, Subject: {subject[:50] if subject else 'None'}...")
             
             # Ensure all values are strings and not None
             if not all([self.from_email, to_email, subject, html_body]):
                 logger.error(f"Missing required email fields - From: {self.from_email}, To: {to_email}, Subject: {bool(subject)}, Body: {bool(html_body)}")
                 return False
+            
+            # Deep check for None keys in the HTML body
+            if "None" in html_body:
+                logger.warning("HTML body contains 'None' string - this might indicate a None key issue")
+                # Log a snippet around the None occurrence
+                none_index = html_body.find("None")
+                snippet = html_body[max(0, none_index-50):none_index+50]
+                logger.warning(f"Context around 'None': ...{snippet}...")
+            
+            # Additional debugging - check if json serialization works
+            try:
+                json_test = json.dumps(data)
+                logger.debug("JSON serialization test passed")
+            except Exception as json_error:
+                logger.error(f"JSON serialization failed: {json_error}")
+                logger.error(f"Data keys: {list(data.keys())}")
+                for key, value in data.items():
+                    logger.error(f"  {key}: type={type(value)}, len={len(str(value)) if value else 0}")
+                    if key == "HtmlBody" and value:
+                        # Check first 200 chars for any weird content
+                        logger.error(f"  HtmlBody preview: {repr(value[:200])}")
             
             async with aiohttp.ClientSession() as session:
                 async with session.post(self.postmark_url, headers=headers, json=data) as response:
@@ -755,6 +802,10 @@ class EmailService:
             # Get top clusters
             clusters = await self.get_top_clusters(cluster_conn)
             logger.info(f"Found {len(clusters)} top clusters from last 24 hours")
+            
+            # Clean all data to ensure no None keys
+            users = clean_dict(users)
+            clusters = clean_dict(clusters)
             
             if not clusters:
                 logger.info("No threat clusters found for daily bulletin - only product announcements or non-threat content")
