@@ -587,6 +587,14 @@ class EmailService:
                     cluster['time_ago'] = f"{hours_ago} hours ago"
             else:
                 cluster['time_ago'] = "Recent"
+            
+            # Convert datetime objects to strings after time_ago calculation
+            if 'clusters_created_at' in cluster and cluster['clusters_created_at'] and hasattr(cluster['clusters_created_at'], 'isoformat'):
+                cluster['clusters_created_at'] = cluster['clusters_created_at'].isoformat()
+            if 'latest_article_time' in cluster and cluster['latest_article_time'] and hasattr(cluster['latest_article_time'], 'isoformat'):
+                cluster['latest_article_time'] = cluster['latest_article_time'].isoformat()
+            if 'earliest_article_time' in cluster and cluster['earliest_article_time'] and hasattr(cluster['earliest_article_time'], 'isoformat'):
+                cluster['earliest_article_time'] = cluster['earliest_article_time'].isoformat()
         
         return template.render(
             date=datetime.now(timezone.utc).strftime("%B %d, %Y"),
@@ -760,8 +768,21 @@ class EmailService:
             trending_cves = await self.get_trending_cves(cluster_conn, limit=10)
             logger.info(f"Found {len(trending_cves)} trending CVEs")
             
-            # Generate summaries for each cluster
+            # Convert datetime objects to strings before generating summaries
             for cluster in clusters:
+                # Convert datetime fields to strings to avoid serialization issues
+                if 'clusters_created_at' in cluster and cluster['clusters_created_at'] and hasattr(cluster['clusters_created_at'], 'isoformat'):
+                    cluster['clusters_created_at'] = cluster['clusters_created_at'].isoformat()
+                if 'latest_article_time' in cluster and cluster['latest_article_time'] and hasattr(cluster['latest_article_time'], 'isoformat'):
+                    cluster['latest_article_time'] = cluster['latest_article_time'].isoformat()
+                if 'earliest_article_time' in cluster and cluster['earliest_article_time'] and hasattr(cluster['earliest_article_time'], 'isoformat'):
+                    cluster['earliest_article_time'] = cluster['earliest_article_time'].isoformat()
+                
+                # Also convert article datetimes
+                for article in cluster.get('articles', []):
+                    if 'published_date' in article and article['published_date'] and hasattr(article['published_date'], 'isoformat'):
+                        article['published_date'] = article['published_date'].isoformat()
+                
                 cluster['summary'] = await self.generate_cluster_summary(cluster)
             
             # Send emails to each user

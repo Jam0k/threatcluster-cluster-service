@@ -6,7 +6,7 @@ Runs daily to send threat intelligence bulletins to subscribed users
 import logging
 import asyncio
 import sys
-from datetime import datetime, time, timedelta
+from datetime import datetime, time, timedelta, timezone
 import signal
 from typing import Optional
 
@@ -59,7 +59,7 @@ class DailyEmailScheduler:
         while self.is_running:
             try:
                 # Calculate time until next send
-                now = datetime.utcnow()
+                now = datetime.now(timezone.utc).replace(tzinfo=None)
                 next_send = datetime.combine(now.date(), self.send_time)
                 
                 # If we've already passed today's send time, schedule for tomorrow
