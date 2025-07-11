@@ -373,7 +373,6 @@ Make it engaging and informative, suitable for both technical and executive audi
             return {"status": "exists", "date": str(target_date)}
         
         logger.info(f"Generating daily threat brief for {target_date}")
-        start_time = datetime.now(timezone.utc)
         
         # Get or create the Cluster AI feed
         feed_id = self.get_or_create_ai_feed()
