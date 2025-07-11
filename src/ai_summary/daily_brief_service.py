@@ -4,7 +4,7 @@ Daily Threat Brief Service - Generates daily AI-powered threat intelligence summ
 import os
 import json
 import logging
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta, date, timezone
 from typing import List, Dict, Optional, Any
 import asyncio
 from openai import AsyncOpenAI
@@ -82,8 +82,7 @@ class DailyBriefService:
                         CURRENT_TIMESTAMP
                     ) 
                     ON CONFLICT (rss_feeds_url) DO UPDATE SET
-                        rss_feeds_is_active = true,
-                        rss_feeds_updated_at = CURRENT_TIMESTAMP
+                        rss_feeds_is_active = true
                     RETURNING rss_feeds_id
                 """)
                 feed_id = cur.fetchone()[0]
@@ -99,7 +98,7 @@ class DailyBriefService:
         
         Returns dict with 'clusters' and 'articles' lists
         """
-        cutoff_time = datetime.utcnow() - timedelta(hours=hours)
+        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=hours)
         
         # Query for top clusters with their articles
         clusters_query = """
@@ -374,7 +373,7 @@ Make it engaging and informative, suitable for both technical and executive audi
             return {"status": "exists", "date": str(target_date)}
         
         logger.info(f"Generating daily threat brief for {target_date}")
-        start_time = datetime.utcnow()
+        start_time = datetime.now(timezone.utc)
         
         # Get or create the Cluster AI feed
         feed_id = self.get_or_create_ai_feed()
@@ -457,7 +456,7 @@ Make it engaging and informative, suitable for both technical and executive audi
                     Json({"content": article_content}),
                     Json({
                         "entities": entities,
-                        "extraction_timestamp": datetime.utcnow().isoformat(),
+                        "extraction_timestamp": datetime.now(timezone.utc).isoformat(),
                         "entity_count": len(entities),
                         "categories": list(set(e['entity_category'] for e in entities)),
                         "no_clustering": True,  # Flag to prevent clustering
