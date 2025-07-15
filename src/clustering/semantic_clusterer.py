@@ -133,9 +133,9 @@ class SemanticClusterer:
         title = title_data.get('title', '') if isinstance(title_data, dict) else str(title_data)
         content = content_data.get('content', '') if isinstance(content_data, dict) else str(content_data)
         
-        # Weight title more heavily by including it 1.5 times
-        # Using partial repetition to achieve 1.5x weight
-        weighted_text = f"{title}\n{title[:len(title)//2]}\n\n{content}"
+        # Weight title more heavily by including it twice
+        # This gives more importance to title similarity
+        weighted_text = f"{title}\n{title}\n\n{content}"
         
         return weighted_text
     
@@ -320,6 +320,95 @@ class SemanticClusterer:
         primary_idx = cluster_indices[np.argmin(distances)]
         return primary_idx
     
+    def get_existing_cluster_embeddings(self, days: int = 3) -> Tuple[List[Dict], np.ndarray]:
+        """Get embeddings for existing clusters from recent days."""
+        conn = psycopg2.connect(settings.database_url)
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        
+        try:
+            cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
+            
+            # Get primary articles from recent clusters
+            query = """
+                SELECT DISTINCT ON (c.clusters_id)
+                    c.clusters_id,
+                    c.clusters_name,
+                    rfc.rss_feeds_clean_id,
+                    rfc.rss_feeds_clean_title,
+                    rfc.rss_feeds_clean_content,
+                    rfc.rss_feeds_clean_extracted_entities
+                FROM cluster_data.clusters c
+                JOIN cluster_data.cluster_articles ca ON c.clusters_id = ca.cluster_articles_cluster_id
+                JOIN cluster_data.rss_feeds_clean rfc ON ca.cluster_articles_clean_id = rfc.rss_feeds_clean_id
+                WHERE c.clusters_is_active = true
+                AND c.clusters_created_at >= %s
+                AND ca.cluster_articles_is_primary = true
+                ORDER BY c.clusters_id
+            """
+            cursor.execute(query, (cutoff_date,))
+            
+            existing_clusters = []
+            cluster_texts = []
+            
+            for row in cursor:
+                cluster_info = dict(row)
+                existing_clusters.append(cluster_info)
+                # Generate text for embedding
+                cluster_texts.append(self.prepare_text_for_embedding(cluster_info))
+            
+            if not existing_clusters:
+                return [], np.array([])
+            
+            # Generate embeddings for existing clusters
+            cluster_embeddings = self.model.encode(cluster_texts, convert_to_numpy=True)
+            
+            logger.info("loaded_existing_clusters", count=len(existing_clusters))
+            return existing_clusters, cluster_embeddings
+            
+        finally:
+            cursor.close()
+            conn.close()
+    
+    def assign_to_existing_clusters(self, articles: List[Dict[str, Any]], 
+                                  embeddings: np.ndarray) -> Tuple[Dict[int, List[int]], List[int]]:
+        """Try to assign articles to existing clusters first."""
+        # Get existing cluster embeddings
+        existing_clusters, cluster_embeddings = self.get_existing_cluster_embeddings()
+        
+        if len(existing_clusters) == 0:
+            return {}, list(range(len(articles)))
+        
+        # Calculate similarities between articles and existing clusters
+        similarities = cosine_similarity(embeddings, cluster_embeddings)
+        
+        # Assign articles to clusters or mark as unassigned
+        cluster_assignments = defaultdict(list)
+        unassigned_indices = []
+        
+        for article_idx in range(len(articles)):
+            # Find best matching cluster
+            cluster_similarities = similarities[article_idx]
+            best_cluster_idx = np.argmax(cluster_similarities)
+            best_similarity = cluster_similarities[best_cluster_idx]
+            
+            if best_similarity >= self.similarity_threshold:
+                # Assign to existing cluster
+                cluster_id = existing_clusters[best_cluster_idx]['clusters_id']
+                cluster_assignments[cluster_id].append(article_idx)
+                logger.debug("assigned_to_existing_cluster", 
+                           article_idx=article_idx,
+                           cluster_id=cluster_id,
+                           similarity=best_similarity)
+            else:
+                # Mark as unassigned
+                unassigned_indices.append(article_idx)
+        
+        logger.info("existing_cluster_assignment_complete",
+                   assigned_count=len(articles) - len(unassigned_indices),
+                   unassigned_count=len(unassigned_indices))
+        
+        return dict(cluster_assignments), unassigned_indices
+
     def process_batch(self, articles: List[Dict[str, Any]]) -> Tuple[Dict, List[Dict]]:
         """Process a batch of articles for clustering."""
         if not articles:
@@ -330,55 +419,81 @@ class SemanticClusterer:
         # Generate embeddings
         embeddings = self.generate_embeddings(articles)
         
-        # Calculate similarity matrix
-        similarity_matrix = self.calculate_similarity_matrix(embeddings)
+        # FIRST: Try to assign articles to existing clusters
+        existing_assignments, unassigned_indices = self.assign_to_existing_clusters(articles, embeddings)
         
-        # Try DBSCAN first
-        clusters = self.cluster_articles_dbscan(articles, similarity_matrix)
-        
-        # If too few clusters, try hierarchical as fallback
-        if len(clusters) < len(articles) * 0.1:  # Less than 10% of articles clustered
-            logger.info("trying_hierarchical_clustering_fallback")
-            clusters_hierarchical = self.cluster_articles_hierarchical(articles, similarity_matrix)
-            if len(clusters_hierarchical) > len(clusters):
-                clusters = clusters_hierarchical
-        
-        # Prepare cluster data for storage
+        # Prepare data for existing cluster assignments
         cluster_data = []
-        for cluster_id, cluster_info in clusters.items():
-            indices = cluster_info['indices']
-            coherence = cluster_info['coherence']
-            
-            # Find primary article
-            primary_idx = self.find_primary_article(articles, indices, embeddings)
-            
-            # Calculate similarity scores for each article
-            article_similarities = {}
-            if len(indices) > 1:
-                centroid_embedding = np.mean(embeddings[indices], axis=0)
-                for idx in indices:
-                    similarity = cosine_similarity(
-                        embeddings[idx].reshape(1, -1),
-                        centroid_embedding.reshape(1, -1)
-                    )[0][0]
-                    article_similarities[idx] = float(similarity)
-            else:
-                article_similarities[indices[0]] = 1.0
-            
-            cluster_data.append({
-                'article_indices': indices,
-                'primary_article_idx': primary_idx,
-                'coherence_score': coherence,
-                'article_similarities': article_similarities,
-                'articles': [articles[idx] for idx in indices]
-            })
+        for cluster_id, article_indices in existing_assignments.items():
+            # Create assignment data for existing clusters
+            for idx in article_indices:
+                cluster_data.append({
+                    'existing_cluster_id': cluster_id,
+                    'article_indices': [idx],
+                    'primary_article_idx': idx,
+                    'coherence_score': 1.0,  # Single article assignment
+                    'article_similarities': {idx: 1.0},
+                    'articles': [articles[idx]]
+                })
+            self.stats['articles_clustered'] += len(article_indices)
         
-        # Update statistics
-        self.stats['clusters_created'] += len(cluster_data)
-        for cluster in cluster_data:
-            self.stats['articles_clustered'] += len(cluster['article_indices'])
+        # SECOND: Cluster only unassigned articles
+        if unassigned_indices:
+            unassigned_articles = [articles[idx] for idx in unassigned_indices]
+            unassigned_embeddings = embeddings[unassigned_indices]
+            
+            # Calculate similarity matrix for unassigned articles only
+            similarity_matrix = self.calculate_similarity_matrix(unassigned_embeddings)
+            
+            # Try DBSCAN first
+            clusters = self.cluster_articles_dbscan(unassigned_articles, similarity_matrix)
+            
+            # If too few clusters, try hierarchical as fallback
+            if len(clusters) < len(unassigned_articles) * 0.1:
+                logger.info("trying_hierarchical_clustering_fallback")
+                clusters_hierarchical = self.cluster_articles_hierarchical(unassigned_articles, similarity_matrix)
+                if len(clusters_hierarchical) > len(clusters):
+                    clusters = clusters_hierarchical
+            
+            # Prepare cluster data for new clusters
+            for cluster_id, cluster_info in clusters.items():
+                indices = cluster_info['indices']
+                coherence = cluster_info['coherence']
+                
+                # Map back to original article indices
+                original_indices = [unassigned_indices[idx] for idx in indices]
+                
+                # Find primary article
+                primary_idx = self.find_primary_article(unassigned_articles, indices, unassigned_embeddings)
+                primary_original_idx = unassigned_indices[primary_idx]
+                
+                # Calculate similarity scores for each article
+                article_similarities = {}
+                if len(indices) > 1:
+                    centroid_embedding = np.mean(unassigned_embeddings[indices], axis=0)
+                    for i, idx in enumerate(indices):
+                        similarity = cosine_similarity(
+                            unassigned_embeddings[idx].reshape(1, -1),
+                            centroid_embedding.reshape(1, -1)
+                        )[0][0]
+                        article_similarities[original_indices[i]] = float(similarity)
+                else:
+                    article_similarities[original_indices[0]] = 1.0
+                
+                cluster_data.append({
+                    'article_indices': original_indices,
+                    'primary_article_idx': primary_original_idx,
+                    'coherence_score': coherence,
+                    'article_similarities': article_similarities,
+                    'articles': [articles[idx] for idx in original_indices]
+                })
+            
+            # Update statistics
+            self.stats['clusters_created'] += len(clusters)
+            for cluster in clusters.values():
+                self.stats['articles_clustered'] += len(cluster['indices'])
         
-        return clusters, cluster_data
+        return {}, cluster_data
 
 
 def main():

@@ -256,9 +256,10 @@ def main():
         
         print("\nClustering completed!")
         print(f"Articles processed: {stats.get('articles_processed', 0)}")
-        print(f"Clusters created: {stats.get('clusters_created', 0)}")
+        print(f"Articles added to existing clusters: {stats.get('articles_added_to_existing', 0)}")
+        print(f"New clusters created: {stats.get('clusters_created', 0)}")
         print(f"Clusters merged: {stats.get('clusters_merged', 0)}")
-        print(f"Articles assigned: {stats.get('articles_assigned', 0)}")
+        print(f"Total articles assigned: {stats.get('articles_assigned', 0)}")
         print(f"Duplicate clusters prevented: {stats.get('duplicate_clusters_prevented', 0)}")
         print(f"Processing time: {stats.get('processing_time_seconds', 0):.2f} seconds")
     else:

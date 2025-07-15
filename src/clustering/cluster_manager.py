@@ -541,14 +541,23 @@ class ClusterManager:
             'clusters_created': 0,
             'clusters_merged': 0,
             'articles_assigned': 0,
-            'duplicate_clusters_prevented': 0
+            'duplicate_clusters_prevented': 0,
+            'articles_added_to_existing': 0
         }
         
         # Get existing clusters for comparison
         existing_clusters = self.get_existing_clusters()
         
         for cluster in clusters:
-            # Check for duplicates
+            # Check if this is an assignment to existing cluster
+            if 'existing_cluster_id' in cluster:
+                # Just add article to existing cluster
+                self.store_cluster(cluster, cluster['existing_cluster_id'])
+                stats['articles_added_to_existing'] += len(cluster['article_indices'])
+                stats['articles_assigned'] += len(cluster['article_indices'])
+                continue
+            
+            # For new clusters, check for duplicates
             duplicate_found = False
             existing_cluster_id = None
             
