@@ -157,22 +157,40 @@ class EntityExtractor:
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         
         try:
-            query = """
-                SELECT 
-                    rfc.rss_feeds_clean_id,
-                    rfc.rss_feeds_clean_title,
-                    rfc.rss_feeds_clean_content,
-                    rfr.rss_feeds_raw_published_date,
-                    rf.rss_feeds_credibility
-                FROM cluster_data.rss_feeds_clean rfc
-                JOIN cluster_data.rss_feeds_raw rfr ON rfc.rss_feeds_clean_raw_id = rfr.rss_feeds_raw_id
-                JOIN cluster_data.rss_feeds rf ON rfr.rss_feeds_raw_feed_id = rf.rss_feeds_id
-                WHERE rfc.rss_feeds_clean_processed = TRUE
-                AND rfc.rss_feeds_clean_extracted_entities IS NULL
-                ORDER BY rfr.rss_feeds_raw_published_date DESC
-                LIMIT %s
-            """
-            cursor.execute(query, (limit or self.batch_size,))
+            if limit:
+                query = """
+                    SELECT 
+                        rfc.rss_feeds_clean_id,
+                        rfc.rss_feeds_clean_title,
+                        rfc.rss_feeds_clean_content,
+                        rfr.rss_feeds_raw_published_date,
+                        rf.rss_feeds_credibility
+                    FROM cluster_data.rss_feeds_clean rfc
+                    JOIN cluster_data.rss_feeds_raw rfr ON rfc.rss_feeds_clean_raw_id = rfr.rss_feeds_raw_id
+                    JOIN cluster_data.rss_feeds rf ON rfr.rss_feeds_raw_feed_id = rf.rss_feeds_id
+                    WHERE rfc.rss_feeds_clean_processed = TRUE
+                    AND rfc.rss_feeds_clean_extracted_entities IS NULL
+                    ORDER BY rfr.rss_feeds_raw_published_date DESC
+                    LIMIT %s
+                """
+                cursor.execute(query, (limit,))
+            else:
+                # Get ALL articles without entities
+                query = """
+                    SELECT 
+                        rfc.rss_feeds_clean_id,
+                        rfc.rss_feeds_clean_title,
+                        rfc.rss_feeds_clean_content,
+                        rfr.rss_feeds_raw_published_date,
+                        rf.rss_feeds_credibility
+                    FROM cluster_data.rss_feeds_clean rfc
+                    JOIN cluster_data.rss_feeds_raw rfr ON rfc.rss_feeds_clean_raw_id = rfr.rss_feeds_raw_id
+                    JOIN cluster_data.rss_feeds rf ON rfr.rss_feeds_raw_feed_id = rf.rss_feeds_id
+                    WHERE rfc.rss_feeds_clean_processed = TRUE
+                    AND rfc.rss_feeds_clean_extracted_entities IS NULL
+                    ORDER BY rfr.rss_feeds_raw_published_date DESC
+                """
+                cursor.execute(query)
             articles = [dict(row) for row in cursor.fetchall()]
             
             logger.info("fetched_unprocessed_articles", count=len(articles))

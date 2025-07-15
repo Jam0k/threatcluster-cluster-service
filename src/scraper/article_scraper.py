@@ -203,18 +203,32 @@ class ArticleScraper:
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         
         try:
-            query = """
-                SELECT 
-                    rss_feeds_raw_id,
-                    rss_feeds_raw_feed_id,
-                    rss_feeds_raw_xml,
-                    rss_feeds_raw_published_date
-                FROM cluster_data.rss_feeds_raw
-                WHERE rss_feeds_raw_processed = FALSE
-                ORDER BY rss_feeds_raw_published_date DESC
-                LIMIT %s
-            """
-            cursor.execute(query, (limit or self.batch_size,))
+            if limit:
+                query = """
+                    SELECT 
+                        rss_feeds_raw_id,
+                        rss_feeds_raw_feed_id,
+                        rss_feeds_raw_xml,
+                        rss_feeds_raw_published_date
+                    FROM cluster_data.rss_feeds_raw
+                    WHERE rss_feeds_raw_processed = FALSE
+                    ORDER BY rss_feeds_raw_published_date DESC
+                    LIMIT %s
+                """
+                cursor.execute(query, (limit,))
+            else:
+                # Get ALL unprocessed articles
+                query = """
+                    SELECT 
+                        rss_feeds_raw_id,
+                        rss_feeds_raw_feed_id,
+                        rss_feeds_raw_xml,
+                        rss_feeds_raw_published_date
+                    FROM cluster_data.rss_feeds_raw
+                    WHERE rss_feeds_raw_processed = FALSE
+                    ORDER BY rss_feeds_raw_published_date DESC
+                """
+                cursor.execute(query)
             articles = [dict(row) for row in cursor.fetchall()]
             
             logger.info("fetched_unprocessed_articles", count=len(articles))

@@ -214,10 +214,10 @@ class ThreatClusterCLI:
             
             elif component_name == 'scraper':
                 print(f"\n{Fore.CYAN}Scraping full article content from URLs...{Style.RESET_ALL}")
-                print(f"Processing batch size: 50 articles")
+                print(f"Processing unscraped articles...")
                 print(f"Rate limiting enabled to avoid blocking...")
                 
-                result = self.components['scraper'].process_batch(limit=50)
+                result = self.components['scraper'].process_batch()
                 
                 print(f"\n{Fore.GREEN}✓ RESULTS:{Style.RESET_ALL}")
                 print(f"  - Articles attempted: {result.get('articles_attempted', 0)}")
@@ -229,10 +229,10 @@ class ThreatClusterCLI:
             
             elif component_name == 'extractor':
                 print(f"\n{Fore.CYAN}Extracting security entities from articles...{Style.RESET_ALL}")
-                print(f"Processing batch size: 50 articles")
+                print(f"Processing articles without entities...")
                 print(f"Entity categories: CVEs, IPs, domains, malware, APT groups, etc.")
                 
-                result = self.components['extractor'].process_batch(limit=50)
+                result = self.components['extractor'].process_batch()
                 
                 print(f"\n{Fore.GREEN}✓ RESULTS:{Style.RESET_ALL}")
                 print(f"  - Articles processed: {result.get('articles_processed', 0)}")
@@ -246,12 +246,13 @@ class ThreatClusterCLI:
             
             elif component_name == 'clusterer':
                 print(f"\n{Fore.CYAN}Creating semantic clusters of related articles...{Style.RESET_ALL}")
-                print(f"Time window: Last 72 hours")
+                print(f"Time window: Last {settings.app_config.get('pipeline', {}).get('time_window_hours', 168)} hours")
                 print(f"Using AI model: sentence-transformers/all-mpnet-base-v2")
                 print(f"Similarity threshold: {settings.app_config.get('clustering', {}).get('similarity_threshold', 0.75)}")
                 
                 # Get unclustered articles
-                articles = self.components['clusterer'].get_unclustered_articles(time_window_hours=72)
+                time_window = settings.app_config.get('pipeline', {}).get('time_window_hours', 168)
+                articles = self.components['clusterer'].get_unclustered_articles(time_window_hours=time_window)
                 if articles:
                     _, cluster_data = self.components['clusterer'].process_batch(articles)
                     
@@ -298,10 +299,11 @@ class ThreatClusterCLI:
             
             elif component_name == 'ranker':
                 print(f"\n{Fore.CYAN}Ranking articles by importance...{Style.RESET_ALL}")
-                print(f"Time window: Last 72 hours")
+                print(f"Time window: Last {settings.app_config.get('pipeline', {}).get('time_window_hours', 168)} hours")
                 print(f"Scoring factors: recency (20%), source credibility (30%), entities (30%), keywords (20%)")
                 
-                result = self.components['ranker'].rank_articles(time_window_hours=72)
+                time_window = settings.app_config.get('pipeline', {}).get('time_window_hours', 168)
+                result = self.components['ranker'].rank_articles(time_window_hours=time_window)
                 
                 print(f"\n{Fore.GREEN}✓ RESULTS:{Style.RESET_ALL}")
                 print(f"  - Articles ranked: {result.get('articles_ranked', 0)}")

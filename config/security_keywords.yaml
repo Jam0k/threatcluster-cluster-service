@@ -279,3 +279,11 @@ non_security_title_patterns:
   - "^hiring"           # Hiring posts
   - "^\\[ot\\]"        # Off-topic posts
   - "^\\[off.?topic\\]" # Off-topic posts
+  - "webinar"           # Webinars
+  - "live webinar"      # Live webinars
+  - "upcoming webinar"  # Upcoming webinars
+  - "join.*webinar"     # Join webinar invitations
+  - "register.*webinar" # Webinar registrations
+  - "^enisa:"           # ENISA announcements
+  - "^enisa launches"   # ENISA launches
+  - "^enisa publishes"  # ENISA publishes
