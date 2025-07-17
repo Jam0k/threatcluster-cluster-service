@@ -64,7 +64,7 @@ scraping:
   timeout_seconds: 30
   max_retries: 3
   rate_limit_delay: 1.0
-  user_agent: "ThreatCluster/1.0 (+https://threatcluster.io/helper)"
+  user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 
 # Monitoring
 monitoring:

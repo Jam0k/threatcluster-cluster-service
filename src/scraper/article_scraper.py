@@ -6,6 +6,7 @@ Fetches full article content from RSS feed links, extracts clean text and images
 and stores the content in the database for further processing.
 """
 import requests
+import cloudscraper
 from bs4 import BeautifulSoup
 import psycopg2
 import psycopg2.extras
@@ -75,6 +76,7 @@ class ArticleScraper:
         '.content-body',
         '.story-body',
         '.article-body',
+        '.post-body',  # Added for TheHackerNews
         'main',
         '.main-content',
         '#content',
@@ -176,6 +178,15 @@ class ArticleScraper:
         # Domain rate limiting tracker
         self.domain_last_access = defaultdict(float)
         
+        # Create cloudscraper instance for Cloudflare bypass
+        self.scraper = cloudscraper.create_scraper(
+            browser={
+                'browser': 'chrome',
+                'platform': 'windows',
+                'desktop': True
+            }
+        )
+        
         # Compile regex patterns for efficiency
         self.navigation_regex = re.compile(
             '|'.join(self.NAVIGATION_PATTERNS), 
@@ -254,21 +265,51 @@ class ArticleScraper:
         """Fetch webpage content with retry logic."""
         headers = {
             'User-Agent': self.user_agent,
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.5',
-            'Accept-Encoding': 'gzip, deflate',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Accept-Encoding': 'gzip, deflate, br',
             'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-Site': 'none',
+            'Sec-Fetch-User': '?1',
+            'Cache-Control': 'max-age=0',
         }
+        
+        # Add domain-specific headers for problematic sites
+        parsed_url = urlparse(url)
+        domain = parsed_url.netloc.lower()
+        
+        if 'thehackernews.com' in domain:
+            headers.update({
+                'Referer': 'https://www.google.com/',
+                'DNT': '1',
+            })
+        elif 'darkreading.com' in domain:
+            headers.update({
+                'Referer': 'https://www.google.com/',
+                'DNT': '1',
+            })
         
         for attempt in range(self.max_retries):
             try:
-                response = requests.get(
-                    url,
-                    headers=headers,
-                    timeout=self.timeout,
-                    allow_redirects=True,
-                    verify=True
-                )
+                # Use cloudscraper for Cloudflare-protected sites
+                if any(domain in url.lower() for domain in ['thehackernews.com', 'darkreading.com']):
+                    response = self.scraper.get(
+                        url,
+                        timeout=self.timeout,
+                        allow_redirects=True
+                    )
+                else:
+                    # Use regular requests for other sites
+                    response = requests.get(
+                        url,
+                        headers=headers,
+                        timeout=self.timeout,
+                        allow_redirects=True,
+                        verify=True
+                    )
                 
                 # Check for success
                 if response.status_code == 200:
@@ -308,18 +349,23 @@ class ArticleScraper:
                 element.decompose()
         
         # Try to find main content
+        text_content = ""
         content_element = None
+        
         for selector in self.CONTENT_SELECTORS:
-            content_element = soup.select_one(selector)
-            if content_element:
-                break
+            element = soup.select_one(selector)
+            if element:
+                # Check if element has meaningful content
+                text = self.extract_text(element)
+                if text and len(text) >= self.MIN_CONTENT_LENGTH:
+                    content_element = element
+                    text_content = text
+                    break
         
         # Fallback to body if no specific content area found
-        if not content_element:
+        if not text_content:
             content_element = soup.body or soup
-        
-        # Extract text
-        text_content = self.extract_text(content_element)
+            text_content = self.extract_text(content_element)
         
         # Extract images
         image_urls = self.extract_images(soup, url)
@@ -949,10 +995,15 @@ class ArticleScraper:
         if not success and rss_description:
             scraped_content = rss_description
             self.stats['content_fallback'] += 1
-            logger.info("using_rss_fallback", url=url)
+            logger.info("using_rss_fallback", url=url, 
+                       error=error_message,
+                       rss_length=len(rss_description))
             # If we have RSS image but no scraped images, keep the RSS image
             if rss_image and not image_urls:
                 image_urls = [rss_image]
+            # Mark as success since we have fallback content
+            success = True
+            error_message = None  # Clear error since we have fallback
         
         # Clean the content
         cleaned_content, cleaning_metadata = self.clean_content(scraped_content)
