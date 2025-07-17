@@ -1,0 +1,33 @@
+[Unit]
+Description=ThreatCluster Cluster Notification Service
+After=network.target postgresql.service
+Wants=network.target
+Requires=postgresql.service
+
+[Service]
+Type=simple
+User=james
+Group=james
+WorkingDirectory=/home/james/Desktop/Threatcluster-2/cluster-service
+Environment=PATH=/home/james/Desktop/Threatcluster-2/cluster-service/venv/bin
+ExecStart=/home/james/Desktop/Threatcluster-2/cluster-service/venv/bin/python -m src.email_service.cluster_notification_scheduler --interval 15
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=10
+KillMode=mixed
+TimeoutStopSec=30
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=threatcluster-cluster-notifications
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/home/james/Desktop/Threatcluster-2/cluster-service/logs
+ReadWritePaths=/home/james/Desktop/Threatcluster-2/cluster-service/cache
+
+[Install]
+WantedBy=multi-user.target
