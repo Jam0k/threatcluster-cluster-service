@@ -55,6 +55,11 @@ class Settings:
         self.email_from_address = os.getenv('EMAIL_FROM_ADDRESS', 'alerts@threatcluster.io')
         self.daily_email_send_time = os.getenv('DAILY_EMAIL_SEND_TIME', '09:00')
         
+        # AWS SES Configuration (for cluster notifications)
+        self.aws_ses_region = os.getenv('AWS_SES_REGION')
+        self.aws_access_key_id = os.getenv('AWS_ACCESS_KEY_ID')
+        self.aws_secret_access_key = os.getenv('AWS_SECRET_ACCESS_KEY')
+        
         # Cache directories (must be set in .env)
         self.transformers_cache = os.getenv('TRANSFORMERS_CACHE')
         self.hf_home = os.getenv('HF_HOME')
