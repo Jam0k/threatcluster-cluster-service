@@ -26,11 +26,11 @@ security_keywords:
 # Semantic Clustering
 clustering:
   model_name: "sentence-transformers/all-mpnet-base-v2"
-  similarity_threshold: 0.70  # Lowered from 0.75 for better evolving story detection
+  similarity_threshold: 0.75  # Lowered from 0.75 for better evolving story detection
   min_cluster_size: 2
   max_cluster_size: 25  # Increased from 12 to handle larger ongoing stories
   time_window_hours: 168  # Increased from 168 (1 week) to 336 (2 weeks)
-  coherence_threshold: 0.70
+  coherence_threshold: 0.75
   batch_size: 50
 
 # Entity Extraction
@@ -52,10 +52,10 @@ entities:
 # Ranking Algorithm
 ranking:
   weights:
-    recency: 0.20
-    source_credibility: 0.30
-    entity_importance: 0.30
-    keyword_severity: 0.20
+    recency: 0.30
+    source_credibility: 0.20
+    entity_importance: 0.20
+    keyword_severity: 0.30
   
   recency_decay_hours: 24
 
