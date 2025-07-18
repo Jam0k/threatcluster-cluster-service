@@ -56,48 +56,69 @@ class ClusterNotificationService(EmailService):
     
     async def get_new_articles_for_cluster(
         self, 
-        conn: asyncpg.Connection, 
+        cluster_conn: asyncpg.Connection,
+        user_conn: asyncpg.Connection, 
         cluster_id: int, 
+        user_id: str,
         since: Optional[datetime] = None
     ) -> List[Dict[str, Any]]:
-        """Get new articles added to a cluster since the last notification"""
+        """Get new articles added to a cluster since the user started following (or since last notification)"""
         if not since:
-            since = datetime.now(timezone.utc) - timedelta(hours=24)
+            since = datetime.now() - timedelta(hours=24)  # Use timezone-naive to match DB
+        
+        # Get when the user started following this cluster
+        follow_query = """
+            SELECT created_at 
+            FROM cluster_user.user_cluster_follows 
+            WHERE user_id = $1 AND cluster_id = $2
+        """
+        follow_row = await user_conn.fetchrow(follow_query, user_id, cluster_id)
+        
+        # Use the later of: when user started following OR last notification time
+        if follow_row and follow_row['created_at']:
+            follow_start = follow_row['created_at']
+            # Convert to timezone-naive if needed to match database format
+            if hasattr(follow_start, 'tzinfo') and follow_start.tzinfo is not None:
+                follow_start = follow_start.replace(tzinfo=None)
+            if hasattr(since, 'tzinfo') and since.tzinfo is not None:
+                since = since.replace(tzinfo=None)
+            # Use the later date to ensure we only show articles added after following
+            since = max(since, follow_start)
             
         query = """
             SELECT 
                 rfr.rss_feeds_raw_id,
-                rfr.rss_feeds_raw_title,
-                rfr.rss_feeds_raw_link,
+                rfr.rss_feeds_raw_xml->>'title' as rss_feeds_raw_title,
+                rfr.rss_feeds_raw_xml->>'link' as rss_feeds_raw_link,
                 rfr.rss_feeds_raw_published_date,
                 rfc.rss_feeds_clean_content,
                 rf.rss_feeds_name,
-                ca.created_at as added_to_cluster_at
+                ca.cluster_articles_added_at as added_to_cluster_at
             FROM cluster_data.cluster_articles ca
-            JOIN cluster_data.rss_feeds_clean rfc ON ca.article_id = rfc.rss_feeds_clean_id
+            JOIN cluster_data.rss_feeds_clean rfc ON ca.cluster_articles_clean_id = rfc.rss_feeds_clean_id
             JOIN cluster_data.rss_feeds_raw rfr ON rfc.rss_feeds_clean_raw_id = rfr.rss_feeds_raw_id
-            JOIN cluster_data.rss_feeds rf ON rfr.rss_feeds_raw_rss_feed_id = rf.rss_feeds_id
-            WHERE ca.cluster_id = $1
-                AND ca.created_at > $2
-            ORDER BY ca.created_at DESC
+            JOIN cluster_data.rss_feeds rf ON rfr.rss_feeds_raw_feed_id = rf.rss_feeds_id
+            WHERE ca.cluster_articles_cluster_id = $1
+                AND ca.cluster_articles_added_at > $2
+            ORDER BY ca.cluster_articles_added_at DESC
             LIMIT 10
         """
         
-        rows = await conn.fetch(query, cluster_id, since)
+        rows = await cluster_conn.fetch(query, cluster_id, since)
         return [dict(row) for row in rows]
     
     async def get_cluster_details(self, conn: asyncpg.Connection, cluster_id: int) -> Optional[Dict[str, Any]]:
         """Get cluster details including name and metadata"""
         query = """
             SELECT 
-                c.cluster_id,
-                c.cluster_name,
-                c.cluster_created_at,
-                COUNT(DISTINCT ca.article_id) as total_articles
+                c.clusters_id as cluster_id,
+                c.clusters_name as cluster_name,
+                c.clusters_created_at as cluster_created_at,
+                COUNT(DISTINCT ca.cluster_articles_clean_id) as total_articles
             FROM cluster_data.clusters c
-            LEFT JOIN cluster_data.cluster_articles ca ON c.cluster_id = ca.cluster_id
-            WHERE c.cluster_id = $1
-            GROUP BY c.cluster_id, c.cluster_name, c.cluster_created_at
+            LEFT JOIN cluster_data.cluster_articles ca ON c.clusters_id = ca.cluster_articles_cluster_id
+            WHERE c.clusters_id = $1
+            GROUP BY c.clusters_id, c.clusters_name, c.clusters_created_at
         """
         
         row = await conn.fetchrow(query, cluster_id)
@@ -142,7 +163,7 @@ class ClusterNotificationService(EmailService):
     ) -> tuple[str, str]:
         """Render email content for cluster notifications"""
         
-        # HTML template
+        # HTML template with red brand colors
         html_template = Template("""
         <!DOCTYPE html>
         <html>
@@ -150,16 +171,24 @@ class ClusterNotificationService(EmailService):
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <style>
-                body { font-family: -apple-system, sans-serif; line-height: 1.6; color: #333; }
-                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                .header { background: #0066cc; color: white; padding: 30px 20px; text-align: center; }
-                .content { padding: 30px 20px; background: #f8f9fa; }
-                .article { background: white; padding: 20px; margin: 15px 0; border-radius: 8px; border-left: 4px solid #0066cc; }
-                .article h3 { margin-top: 0; color: #0066cc; }
-                .meta { color: #666; font-size: 14px; margin: 10px 0; }
-                .button { display: inline-block; padding: 12px 30px; background: #0066cc; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
-                .footer { text-align: center; padding: 20px; color: #666; font-size: 14px; }
-                a { color: #0066cc; }
+                body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+                .container { max-width: 600px; margin: 0 auto; padding: 0; }
+                .header { background: #dc2626; color: white; padding: 30px 20px; text-align: center; }
+                .header h1 { margin: 0; font-size: 24px; font-weight: 600; }
+                .content { padding: 30px 20px; background: #ffffff; }
+                .content p { color: #374151; margin: 16px 0; }
+                .article { background: #f9fafb; padding: 20px; margin: 20px 0; border-radius: 8px; border-left: 4px solid #dc2626; }
+                .article h3 { margin-top: 0; margin-bottom: 12px; color: #dc2626; font-size: 18px; font-weight: 600; line-height: 1.3; }
+                .meta { color: #6b7280; font-size: 14px; margin: 12px 0; }
+                .meta strong { color: #374151; }
+                .article-content { color: #4b5563; margin: 12px 0; line-height: 1.5; }
+                .button { display: inline-block; padding: 12px 30px; background: #dc2626; color: white; text-decoration: none; border-radius: 6px; margin: 20px 0; font-weight: 500; }
+                .button:hover { background: #b91c1c; }
+                .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 14px; background: #f9fafb; }
+                .footer a { color: #dc2626; text-decoration: none; }
+                .footer a:hover { text-decoration: underline; }
+                a { color: #dc2626; text-decoration: none; }
+                a:hover { text-decoration: underline; }
             </style>
         </head>
         <body>
@@ -180,18 +209,18 @@ class ClusterNotificationService(EmailService):
                             <strong>Source:</strong> {{ article.rss_feeds_name }}<br>
                             <strong>Published:</strong> {{ article.rss_feeds_raw_published_date.strftime('%B %d, %Y at %I:%M %p UTC') }}
                         </div>
-                        <p>{{ (article.rss_feeds_clean_content or '')[:200] }}...</p>
+                        <div class="article-content">{{ article.clean_content[:300] }}{% if article.clean_content|length > 300 %}...{% endif %}</div>
                         <a href="{{ article.rss_feeds_raw_link }}" target="_blank">Read full article →</a>
                     </div>
                     {% endfor %}
                     
                     <div style="text-align: center;">
-                        <a href="https://app.threatcluster.io/clusters/{{ cluster.cluster_id }}" class="button">
+                        <a href="https://threatcluster.io/clusters/{{ cluster.cluster_id }}" class="button">
                             View Full Cluster Analysis
                         </a>
                     </div>
                     
-                    <p style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+                    <p style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #6b7280;">
                         <small>This cluster now contains <strong>{{ cluster.total_articles }}</strong> total articles.</small>
                     </p>
                 </div>
@@ -199,8 +228,8 @@ class ClusterNotificationService(EmailService):
                 <div class="footer">
                     <p>
                         You're receiving this because you're following this story on ThreatCluster.<br>
-                        <a href="https://app.threatcluster.io/settings/notifications">Manage your notifications</a> | 
-                        <a href="https://app.threatcluster.io/clusters/{{ cluster.cluster_id }}/unfollow">Unfollow this story</a>
+                        <a href="https://threatcluster.io/settings/notifications">Manage your notifications</a> | 
+                        <a href="https://threatcluster.io/clusters/{{ cluster.cluster_id }}/unfollow">Unfollow this story</a>
                     </p>
                 </div>
             </div>
@@ -222,32 +251,56 @@ Hi {{ user.users_name or 'there' }},
 Source: {{ article.rss_feeds_name }}
 Published: {{ article.rss_feeds_raw_published_date.strftime('%B %d, %Y at %I:%M %p UTC') }}
 
-{{ (article.rss_feeds_clean_content or '')[:200] }}...
+{{ article.clean_content[:200] }}{% if article.clean_content|length > 200 %}...{% endif %}
 
 Read more: {{ article.rss_feeds_raw_link }}
 
 {% endfor %}
 
-View full cluster analysis: https://app.threatcluster.io/clusters/{{ cluster.cluster_id }}
+View full cluster analysis: https://threatcluster.io/clusters/{{ cluster.cluster_id }}
 
 This cluster now contains {{ cluster.total_articles }} total articles.
 
 ---
 You're receiving this because you're following this story on ThreatCluster.
-Manage notifications: https://app.threatcluster.io/settings/notifications
-Unfollow this story: https://app.threatcluster.io/clusters/{{ cluster.cluster_id }}/unfollow
+Manage notifications: https://threatcluster.io/settings/notifications
+Unfollow this story: https://threatcluster.io/clusters/{{ cluster.cluster_id }}/unfollow
         """)
+        
+        # Process articles to extract clean content from JSON
+        processed_articles = []
+        for article in new_articles:
+            processed_article = dict(article)
+            
+            # Extract clean content from JSON
+            clean_content = ""
+            if article.get('rss_feeds_clean_content'):
+                content_json = article['rss_feeds_clean_content']
+                if isinstance(content_json, dict):
+                    clean_content = content_json.get('content', '')
+                elif isinstance(content_json, str):
+                    try:
+                        import json
+                        content_data = json.loads(content_json)
+                        clean_content = content_data.get('content', '')
+                    except:
+                        clean_content = content_json
+                else:
+                    clean_content = str(content_json)
+            
+            processed_article['clean_content'] = clean_content or "No content preview available"
+            processed_articles.append(processed_article)
         
         html_content = html_template.render(
             user=user,
             cluster=cluster,
-            new_articles=new_articles
+            new_articles=processed_articles
         )
         
         text_content = text_template.render(
             user=user,
             cluster=cluster,
-            new_articles=new_articles
+            new_articles=processed_articles
         )
         
         return html_content, text_content
@@ -313,10 +366,12 @@ Unfollow this story: https://app.threatcluster.io/clusters/{{ cluster.cluster_id
         for follower in followers:
             try:
                 # Get new articles since last notification
-                last_notified = follower.get('last_notified_at') or datetime.now(timezone.utc) - timedelta(days=7)
+                last_notified = follower.get('last_notified_at') or datetime.now() - timedelta(days=7)
                 new_articles = await self.get_new_articles_for_cluster(
-                    cluster_conn, 
-                    cluster_id, 
+                    cluster_conn,
+                    user_conn,
+                    cluster_id,
+                    follower['users_id'],
                     last_notified
                 )
                 
