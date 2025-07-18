@@ -72,14 +72,14 @@ class ClusterNotificationService(EmailService):
                 rfr.rss_feeds_raw_published_date,
                 rfc.rss_feeds_clean_content,
                 rf.rss_feeds_name,
-                cam.created_at as added_to_cluster_at
-            FROM cluster_data.cluster_article_mapping cam
-            JOIN cluster_data.rss_feeds_clean rfc ON cam.article_id = rfc.rss_feeds_clean_id
+                ca.created_at as added_to_cluster_at
+            FROM cluster_data.cluster_articles ca
+            JOIN cluster_data.rss_feeds_clean rfc ON ca.article_id = rfc.rss_feeds_clean_id
             JOIN cluster_data.rss_feeds_raw rfr ON rfc.rss_feeds_clean_raw_id = rfr.rss_feeds_raw_id
             JOIN cluster_data.rss_feeds rf ON rfr.rss_feeds_raw_rss_feed_id = rf.rss_feeds_id
-            WHERE cam.cluster_id = $1
-                AND cam.created_at > $2
-            ORDER BY cam.created_at DESC
+            WHERE ca.cluster_id = $1
+                AND ca.created_at > $2
+            ORDER BY ca.created_at DESC
             LIMIT 10
         """
         
@@ -93,9 +93,9 @@ class ClusterNotificationService(EmailService):
                 c.cluster_id,
                 c.cluster_name,
                 c.cluster_created_at,
-                COUNT(DISTINCT cam.article_id) as total_articles
+                COUNT(DISTINCT ca.article_id) as total_articles
             FROM cluster_data.clusters c
-            LEFT JOIN cluster_data.cluster_article_mapping cam ON c.cluster_id = cam.cluster_id
+            LEFT JOIN cluster_data.cluster_articles ca ON c.cluster_id = ca.cluster_id
             WHERE c.cluster_id = $1
             GROUP BY c.cluster_id, c.cluster_name, c.cluster_created_at
         """
