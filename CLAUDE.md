@@ -523,3 +523,63 @@ Each daily bulletin includes:
 - Links to full cluster analysis on ThreatCluster
 - Article counts and creation times
 - User subscription management link
+
+## Entity Notification Service
+
+The entity notification service sends alerts when new articles mention entities in a user's custom feeds:
+
+### Key Features
+
+- **Custom Feed Support**: Users can organize followed entities into custom feeds
+- **Feed-Level Notifications**: Users can enable/disable notifications per feed
+- **Entity Monitoring**: Tracks when new articles mention followed entities
+- **Smart Batching**: Groups notifications by feed to reduce email volume
+- **AWS SES Integration**: Reliable email delivery via Amazon SES
+- **Activity Tracking**: Updates last activity timestamps for notified entities
+
+### Running Entity Notification Service
+
+```bash
+# Test notification service
+python -m tests.test_entity_notification
+
+# Run scheduler once
+python -m src.email_service.entity_notification_scheduler --once
+
+# Run as daemon (checks every 30 minutes)
+python -m src.email_service.entity_notification_scheduler
+```
+
+### Database Setup
+
+Run the migrations to add feed support:
+```bash
+psql $DATABASE_URL -f src/database/sql/add_entity_feed_support.sql
+psql $DATABASE_URL -f src/database/sql/add_feed_notification_preference.sql
+```
+
+### Configuration
+
+Ensure AWS SES is configured in your `.env`:
+```bash
+# AWS SES Configuration
+AWS_SES_REGION=us-east-1
+AWS_ACCESS_KEY_ID=your-access-key
+AWS_SECRET_ACCESS_KEY=your-secret-key
+```
+
+### Notification Content
+
+Entity notifications include:
+- Articles grouped by entity
+- Entity name and category
+- Article title, source, and publication date
+- Content preview
+- Direct links to articles
+- Feed management links
+
+### API Endpoints
+
+The API provides endpoints to manage feed notifications:
+- `PATCH /api/v1/entity-feeds/{feed_id}/notifications` - Toggle notifications for a feed
+- `PUT /api/v1/entity-feeds/{feed_id}` - Update feed including notifications_enabled field

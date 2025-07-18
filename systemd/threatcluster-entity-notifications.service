@@ -1,0 +1,31 @@
+[Unit]
+Description=ThreatCluster Entity Feed Notification Service
+After=network.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/root/threatcluster-cluster-service
+Environment="PATH=/root/threatcluster-cluster-service/venv/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="PYTHONPATH=/root/threatcluster-cluster-service"
+EnvironmentFile=/root/threatcluster-cluster-service/.env
+
+# Run the entity notification scheduler
+ExecStart=/root/threatcluster-cluster-service/venv/bin/python -m src.email_service.entity_notification_scheduler --interval 30
+
+# Restart on failure
+Restart=on-failure
+RestartSec=30
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=threatcluster-entity-notifications
+
+# Security settings - minimal for root user
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
