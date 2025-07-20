@@ -22,9 +22,6 @@ SyslogIdentifier=threatcluster-openai
 # Security hardening
 NoNewPrivileges=true
 PrivateTmp=true
-ProtectSystem=strict
-ProtectHome=true
-ReadWritePaths=/opt/threatcluster/cluster-service/logs /var/log/threatcluster
 
 # Resource limits
 LimitNOFILE=65536
