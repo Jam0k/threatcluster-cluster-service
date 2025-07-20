@@ -19,9 +19,6 @@ StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=threatcluster-openai
 
-# Security hardening
-NoNewPrivileges=true
-PrivateTmp=true
 
 # Resource limits
 LimitNOFILE=65536
