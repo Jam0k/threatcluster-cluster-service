@@ -31,6 +31,49 @@ class AISummaryService:
         self.max_retries = 3
         self.retry_delay = 2  # seconds
         
+    async def get_clusters_needing_regeneration(self, limit: int = 10) -> List[Dict]:
+        """
+        Fetch clusters that need AI summary regeneration (new or updated).
+        
+        Args:
+            limit: Maximum number of clusters to fetch
+            
+        Returns:
+            List of cluster dictionaries
+        """
+        query = """
+        SELECT 
+            cnr.clusters_id,
+            c.clusters_name,
+            c.clusters_created_at,
+            cnr.regeneration_reason,
+            cnr.current_article_count as article_count
+        FROM cluster_data.clusters_needing_ai_regeneration cnr
+        JOIN cluster_data.clusters c ON cnr.clusters_id = c.clusters_id
+        ORDER BY 
+            CASE cnr.regeneration_reason
+                WHEN 'never_generated' THEN 1
+                WHEN 'content_updated' THEN 2
+                WHEN 'article_count_mismatch' THEN 3
+                ELSE 4
+            END,
+            c.clusters_created_at ASC
+        LIMIT %s
+        """
+        
+        conn = psycopg2.connect(settings.database_url)
+        try:
+            with conn.cursor(cursor_factory=RealDictCursor) as cur:
+                cur.execute(query, (limit,))
+                clusters = cur.fetchall()
+                
+            logger.info(f"Found {len(clusters)} clusters needing AI regeneration")
+            for cluster in clusters:
+                logger.info(f"  - Cluster {cluster['clusters_id']}: {cluster['regeneration_reason']}")
+            return clusters
+        finally:
+            conn.close()
+    
     async def get_clusters_without_summaries(self, limit: int = 10) -> List[Dict]:
         """
         Fetch clusters that don't have AI summaries yet.
@@ -129,11 +172,11 @@ class AISummaryService:
                 response = await self.client.chat.completions.create(
                     model=self.model,
                     messages=[
-                        {"role": "system", "content": "You are a cybersecurity intelligence analyst specializing in threat analysis and summarization."},
+                        {"role": "system", "content": "You are an expert cyber security threat intelligence analyst. Follow the exact format provided, focusing on actionable intelligence, technical accuracy, and balanced perspectives. Always synthesize information from ALL articles in the cluster."},
                         {"role": "user", "content": prompt}
                     ],
                     temperature=0.3,  # Lower temperature for more consistent output
-                    max_tokens=1500,  # Enough for 3 briefs of 500 chars each
+                    max_tokens=1500,  # Reduced for concise summaries
                     response_format={"type": "json_object"}  # Ensure JSON response
                 )
                 
@@ -142,12 +185,20 @@ class AISummaryService:
                 summary_data = json.loads(content)
                 
                 # Validate the response structure
-                required_keys = ['executive_brief', 'technical_brief', 'remediation_brief']
+                required_keys = ['key_insights', 'summary']
                 if all(key in summary_data for key in required_keys):
-                    # Ensure each brief is within 500 character limit
-                    for key in required_keys:
-                        if len(summary_data[key]) > 500:
-                            summary_data[key] = summary_data[key][:497] + "..."
+                    # Validate key_insights is a list
+                    if not isinstance(summary_data['key_insights'], list):
+                        logger.error("key_insights is not a list")
+                        continue
+                    
+                    # Ensure summary is within reasonable limits (150 words ~= 900 chars)
+                    if len(summary_data['summary']) > 1000:
+                        summary_data['summary'] = summary_data['summary'][:997] + "..."
+                    
+                    # Limit key insights to 5 items
+                    if len(summary_data['key_insights']) > 5:
+                        summary_data['key_insights'] = summary_data['key_insights'][:5]
                     
                     logger.info("Successfully generated AI summary")
                     return summary_data
@@ -179,7 +230,8 @@ class AISummaryService:
         query = """
         UPDATE cluster_data.clusters
         SET ai_summary = %s,
-            has_ai_summary = TRUE
+            has_ai_summary = TRUE,
+            ai_summary_generated_at = CURRENT_TIMESTAMP
         WHERE clusters_id = %s
         """
         
@@ -231,12 +283,13 @@ class AISummaryService:
         success = self.save_ai_summary(cluster_id, ai_summary)
         return success
     
-    async def process_clusters_batch(self, limit: int = 10) -> Dict[str, Any]:
+    async def process_clusters_batch(self, limit: int = 10, include_updates: bool = True) -> Dict[str, Any]:
         """
-        Process a batch of clusters without AI summaries.
+        Process a batch of clusters that need AI summaries (new or updated).
         
         Args:
             limit: Maximum number of clusters to process
+            include_updates: Whether to include clusters that need regeneration
             
         Returns:
             Dictionary with processing results
@@ -246,11 +299,17 @@ class AISummaryService:
             'processed': 0,
             'successful': 0,
             'failed': 0,
+            'regenerated': 0,
+            'new': 0,
             'clusters': []
         }
         
-        # Get clusters to process
-        clusters = await self.get_clusters_without_summaries(limit)
+        # Get clusters to process (either just new or including updates)
+        if include_updates:
+            clusters = await self.get_clusters_needing_regeneration(limit)
+        else:
+            clusters = await self.get_clusters_without_summaries(limit)
+            
         if not clusters:
             logger.info("No clusters found that need AI summaries")
             return results
@@ -264,6 +323,12 @@ class AISummaryService:
                 if success:
                     results['successful'] += 1
                     status = 'success'
+                    # Track if this was a regeneration or new generation
+                    if include_updates and 'regeneration_reason' in cluster:
+                        if cluster['regeneration_reason'] != 'never_generated':
+                            results['regenerated'] += 1
+                        else:
+                            results['new'] += 1
                 else:
                     results['failed'] += 1
                     status = 'failed'
@@ -271,7 +336,8 @@ class AISummaryService:
                 results['clusters'].append({
                     'cluster_id': cluster['clusters_id'],
                     'cluster_name': cluster['clusters_name'],
-                    'status': status
+                    'status': status,
+                    'reason': cluster.get('regeneration_reason', 'new')
                 })
                 
                 # Add delay between API calls to avoid rate limiting

@@ -1,5 +1,5 @@
 [Unit]
-Description=ThreatCluster OpenAI Enrichment Daemon
+Description=ThreatCluster AI Summary Generator (15min)
 Documentation=https://threatcluster.com/docs
 After=network.target postgresql.service redis.service
 Wants=network.target
@@ -12,7 +12,7 @@ WorkingDirectory=/opt/threatcluster/cluster-service
 Environment=PATH=/opt/threatcluster/cluster-service/venv/bin:/usr/local/bin:/usr/bin:/bin
 Environment=PYTHONPATH=/opt/threatcluster/cluster-service
 EnvironmentFile=/etc/threatcluster/environment
-ExecStart=/opt/threatcluster/cluster-service/venv/bin/python -m src.openai_integration.enrichment_scheduler
+ExecStart=/opt/threatcluster/cluster-service/venv/bin/python -m src.ai_summary.ai_summary_scheduler --interval 900
 ExecReload=/bin/kill -HUP $MAINPID
 Restart=always
 RestartSec=10

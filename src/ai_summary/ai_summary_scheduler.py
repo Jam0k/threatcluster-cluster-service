@@ -28,21 +28,25 @@ logger = logging.getLogger(__name__)
 class AISummaryScheduler:
     """Scheduler for running AI summary generation periodically"""
     
-    def __init__(self, interval_seconds: int = 3600, batch_size: int = 10):
+    def __init__(self, interval_seconds: int = 3600, batch_size: int = 10, include_updates: bool = True):
         """
         Initialize the scheduler.
         
         Args:
             interval_seconds: Time between runs in seconds (default: 3600 = 1 hour)
             batch_size: Number of clusters to process per run
+            include_updates: Whether to regenerate summaries for updated clusters
         """
         self.interval_seconds = interval_seconds
         self.batch_size = batch_size
+        self.include_updates = include_updates
         self.service = AISummaryService()
         self.running = False
         self.total_processed = 0
         self.total_successful = 0
         self.total_failed = 0
+        self.total_regenerated = 0
+        self.total_new = 0
         
     def signal_handler(self, signum, frame):
         """Handle shutdown signals gracefully"""
@@ -52,28 +56,40 @@ class AISummaryScheduler:
     
     async def run_once(self):
         """Run the AI summary generation once"""
-        logger.info(f"Starting AI summary generation run (batch size: {self.batch_size})")
+        logger.info(f"Starting AI summary generation run (batch size: {self.batch_size}, "
+                   f"include updates: {self.include_updates})")
         
         try:
-            results = await self.service.process_clusters_batch(limit=self.batch_size)
+            results = await self.service.process_clusters_batch(
+                limit=self.batch_size,
+                include_updates=self.include_updates
+            )
             
             # Update totals
             self.total_processed += results['processed']
             self.total_successful += results['successful']
             self.total_failed += results['failed']
+            if self.include_updates:
+                self.total_regenerated += results.get('regenerated', 0)
+                self.total_new += results.get('new', 0)
             
             logger.info(f"Run complete: {results['successful']} successful, "
                        f"{results['failed']} failed, "
                        f"{results['processing_time_seconds']:.2f} seconds")
             
+            if self.include_updates:
+                logger.info(f"  - New summaries: {results.get('new', 0)}")
+                logger.info(f"  - Regenerated: {results.get('regenerated', 0)}")
+            
             # Log details for each cluster
             for cluster_result in results['clusters']:
+                reason = cluster_result.get('reason', 'new')
                 if cluster_result['status'] == 'success':
                     logger.info(f"✓ Cluster {cluster_result['cluster_id']}: "
-                               f"{cluster_result['cluster_name']}")
+                               f"{cluster_result['cluster_name']} ({reason})")
                 else:
                     logger.error(f"✗ Cluster {cluster_result['cluster_id']}: "
-                                f"{cluster_result['cluster_name']} - "
+                                f"{cluster_result['cluster_name']} ({reason}) - "
                                 f"{cluster_result.get('error', 'Unknown error')}")
             
             return results
@@ -100,6 +116,8 @@ class AISummaryScheduler:
             logger.info(f"Run #{run_count} starting at {datetime.now()}")
             logger.info(f"Total stats: {self.total_successful} successful, "
                        f"{self.total_failed} failed, {self.total_processed} processed")
+            if self.include_updates:
+                logger.info(f"  - New: {self.total_new}, Regenerated: {self.total_regenerated}")
             
             # Run the generation
             await self.run_once()
@@ -157,6 +175,11 @@ async def main():
         action='store_true',
         help='Run in test mode with batch size of 1'
     )
+    parser.add_argument(
+        '--no-updates',
+        action='store_true',
+        help='Only process new clusters, skip regeneration of updated clusters'
+    )
     
     args = parser.parse_args()
     
@@ -168,7 +191,8 @@ async def main():
     # Create scheduler
     scheduler = AISummaryScheduler(
         interval_seconds=args.interval,
-        batch_size=args.batch_size
+        batch_size=args.batch_size,
+        include_updates=not args.no_updates
     )
     
     # Run once or as daemon
