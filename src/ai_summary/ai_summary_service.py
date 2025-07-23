@@ -128,10 +128,16 @@ class AISummaryService:
             rfc.rss_feeds_clean_title->>'title' as title,
             rfc.rss_feeds_clean_content->>'content' as content,
             ca.cluster_articles_is_primary as is_primary_article,
-            ca.cluster_articles_similarity_score as similarity_score
+            ca.cluster_articles_similarity_score as similarity_score,
+            rf.rss_feeds_name as source,
+            TO_CHAR(rfr.rss_feeds_raw_published_date, 'YYYY-MM-DD HH24:MI') as published_date
         FROM cluster_data.cluster_articles ca
         JOIN cluster_data.rss_feeds_clean rfc 
             ON ca.cluster_articles_clean_id = rfc.rss_feeds_clean_id
+        JOIN cluster_data.rss_feeds_raw rfr
+            ON rfc.rss_feeds_clean_raw_id = rfr.rss_feeds_raw_id
+        JOIN cluster_data.rss_feeds rf
+            ON rfr.rss_feeds_raw_feed_id = rf.rss_feeds_id
         WHERE ca.cluster_articles_cluster_id = %s
         ORDER BY ca.cluster_articles_is_primary DESC, ca.cluster_articles_similarity_score DESC
         LIMIT %s
@@ -185,11 +191,21 @@ class AISummaryService:
                 summary_data = json.loads(content)
                 
                 # Validate the response structure
-                required_keys = ['key_insights', 'summary']
+                required_keys = ['key_insights', 'summary', 'ttps', 'sources']
                 if all(key in summary_data for key in required_keys):
                     # Validate key_insights is a list
                     if not isinstance(summary_data['key_insights'], list):
                         logger.error("key_insights is not a list")
+                        continue
+                    
+                    # Validate ttps is a list
+                    if not isinstance(summary_data['ttps'], list):
+                        logger.error("ttps is not a list")
+                        continue
+                    
+                    # Validate sources is a dict
+                    if not isinstance(summary_data['sources'], dict):
+                        logger.error("sources is not a dict")
                         continue
                     
                     # Ensure summary is within reasonable limits (150 words ~= 900 chars)
@@ -200,10 +216,14 @@ class AISummaryService:
                     if len(summary_data['key_insights']) > 5:
                         summary_data['key_insights'] = summary_data['key_insights'][:5]
                     
+                    # Limit TTPs to 6 items
+                    if len(summary_data['ttps']) > 6:
+                        summary_data['ttps'] = summary_data['ttps'][:6]
+                    
                     logger.info("Successfully generated AI summary")
                     return summary_data
                 else:
-                    logger.error(f"Invalid response structure: missing required keys")
+                    logger.error(f"Invalid response structure: missing required keys. Got keys: {list(summary_data.keys())}")
                     
             except json.JSONDecodeError as e:
                 logger.error(f"Failed to parse OpenAI response as JSON: {e}")
