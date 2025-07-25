@@ -332,6 +332,9 @@ class AISummaryService:
             
         if not clusters:
             logger.info("No clusters found that need AI summaries")
+            # Calculate processing time even when no clusters found
+            processing_time = (datetime.now() - start_time).total_seconds()
+            results['processing_time_seconds'] = processing_time
             return results
         
         # Process each cluster
