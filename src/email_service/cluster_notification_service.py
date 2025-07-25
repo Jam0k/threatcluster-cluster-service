@@ -364,70 +364,70 @@ Unfollow this story: https://threatcluster.io/clusters/{{ cluster.cluster_id }}/
         # Process each follower
         notifications_sent = 0
         for follower in followers:
-            try:
-                # Get new articles since last notification
-                last_notified = follower.get('last_notified_at') or datetime.now() - timedelta(days=7)
-                new_articles = await self.get_new_articles_for_cluster(
-                    cluster_conn,
-                    user_conn,
-                    cluster_id,
-                    follower['users_id'],
-                    last_notified
-                )
-                
-                if not new_articles:
-                    continue
-                
-                # Render email
-                html_content, text_content = self.render_notification_email(
-                    follower,
-                    cluster,
-                    new_articles
-                )
-                
-                # Send email
-                subject = f"New updates: {cluster['cluster_name']}"
-                success = await self.send_notification_email(
-                    follower['users_email'],
-                    subject,
-                    html_content,
-                    text_content
-                )
-                
-                if success:
-                    # Update last notified timestamp
-                    await self.update_last_notified(
+            # Use transaction for each follower
+            async with user_conn.transaction():
+                try:
+                    # Get new articles since last notification
+                    last_notified = follower.get('last_notified_at') or datetime.now() - timedelta(days=7)
+                    new_articles = await self.get_new_articles_for_cluster(
+                        cluster_conn,
                         user_conn,
-                        follower['users_id'],
-                        cluster_id
-                    )
-                    
-                    # Record notification history for first article
-                    await self.record_notification(
-                        user_conn,
-                        follower['users_id'],
                         cluster_id,
-                        new_articles[0]['rss_feeds_raw_id'],
-                        'sent'
-                    )
-                    
-                    notifications_sent += 1
-                else:
-                    # Record failure
-                    await self.record_notification(
-                        user_conn,
                         follower['users_id'],
-                        cluster_id,
-                        new_articles[0]['rss_feeds_raw_id'],
-                        'failed',
-                        'Email send failed'
+                        last_notified
                     )
                     
-                await user_conn.commit()
-                
-            except Exception as e:
-                logger.error(f"Error notifying user {follower['users_id']} for cluster {cluster_id}: {e}")
-                await user_conn.rollback()
+                    if not new_articles:
+                        continue
+                    
+                    # Render email
+                    html_content, text_content = self.render_notification_email(
+                        follower,
+                        cluster,
+                        new_articles
+                    )
+                    
+                    # Send email
+                    subject = f"New updates: {cluster['cluster_name']}"
+                    success = await self.send_notification_email(
+                        follower['users_email'],
+                        subject,
+                        html_content,
+                        text_content
+                    )
+                    
+                    if success:
+                        # Update last notified timestamp
+                        await self.update_last_notified(
+                            user_conn,
+                            follower['users_id'],
+                            cluster_id
+                        )
+                        
+                        # Record notification history for first article
+                        await self.record_notification(
+                            user_conn,
+                            follower['users_id'],
+                            cluster_id,
+                            new_articles[0]['rss_feeds_raw_id'],
+                            'sent'
+                        )
+                        
+                        notifications_sent += 1
+                    else:
+                        # Record failure
+                        await self.record_notification(
+                            user_conn,
+                            follower['users_id'],
+                            cluster_id,
+                            new_articles[0]['rss_feeds_raw_id'],
+                            'failed',
+                            'Email send failed'
+                        )
+                        
+                except Exception as e:
+                    logger.error(f"Error notifying user {follower['users_id']} for cluster {cluster_id}: {e}")
+                    # Transaction will automatically rollback on exception
         
         logger.info(f"Sent {notifications_sent} notifications for cluster {cluster_id}")
     
