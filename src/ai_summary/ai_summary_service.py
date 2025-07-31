@@ -13,6 +13,8 @@ from psycopg2.extras import RealDictCursor
 
 from src.config.settings import settings
 from .prompts import build_cluster_prompt
+from .entity_sync_service import EntitySyncService
+from .entity_link_service import EntityLinkService
 
 logger = logging.getLogger(__name__)
 
@@ -27,9 +29,11 @@ class AISummaryService:
             raise ValueError("OPENAI_API_KEY environment variable is not set")
         
         self.client = AsyncOpenAI(api_key=self.openai_api_key)
-        self.model = "gpt-4o-mini"  # Using GPT-4-mini as specified
+        self.model = "gpt-4o"  # Using GPT-4o for better content generation
         self.max_retries = 3
         self.retry_delay = 2  # seconds
+        self.entity_sync = EntitySyncService()  # Initialize entity sync service
+        self.entity_link = EntityLinkService()  # Initialize entity link service
         
     async def get_clusters_needing_regeneration(self, limit: int = 10) -> List[Dict]:
         """
@@ -122,6 +126,10 @@ class AISummaryService:
         Returns:
             List of article dictionaries
         """
+        # Fetch more articles for richer content
+        if max_articles == 10:
+            max_articles = 20
+            
         query = """
         SELECT 
             rfc.rss_feeds_clean_id,
@@ -130,6 +138,7 @@ class AISummaryService:
             ca.cluster_articles_is_primary as is_primary_article,
             ca.cluster_articles_similarity_score as similarity_score,
             rf.rss_feeds_name as source,
+            rf.rss_feeds_credibility as source_credibility,
             TO_CHAR(rfr.rss_feeds_raw_published_date, 'YYYY-MM-DD HH24:MI') as published_date
         FROM cluster_data.cluster_articles ca
         JOIN cluster_data.rss_feeds_clean rfc 
@@ -139,7 +148,7 @@ class AISummaryService:
         JOIN cluster_data.rss_feeds rf
             ON rfr.rss_feeds_raw_feed_id = rf.rss_feeds_id
         WHERE ca.cluster_articles_cluster_id = %s
-        ORDER BY ca.cluster_articles_is_primary DESC, ca.cluster_articles_similarity_score DESC
+        ORDER BY ca.cluster_articles_is_primary DESC, rf.rss_feeds_credibility DESC, ca.cluster_articles_similarity_score DESC
         LIMIT %s
         """
         
@@ -167,6 +176,7 @@ class AISummaryService:
             logger.warning("No articles provided for summarization")
             return None
         
+        
         # Build the prompt
         prompt = build_cluster_prompt(articles)
         
@@ -178,11 +188,11 @@ class AISummaryService:
                 response = await self.client.chat.completions.create(
                     model=self.model,
                     messages=[
-                        {"role": "system", "content": "You are an expert cyber security threat intelligence analyst. Follow the exact format provided, focusing on actionable intelligence, technical accuracy, and balanced perspectives. Always synthesize information from ALL articles in the cluster."},
+                        {"role": "system", "content": "You are a professional security news reporter. Write factual, informative articles without editorial commentary. IMPORTANT: The 'summary' field MUST be a complete 450-550 word news article. Report facts, quotes, and data. Avoid opinion phrases like 'serves as a reminder' or 'underscores the importance'. Stick to neutral, objective reporting."},
                         {"role": "user", "content": prompt}
                     ],
-                    temperature=0.3,  # Lower temperature for more consistent output
-                    max_tokens=1500,  # Reduced for concise summaries
+                    temperature=0.6,  # Higher for more expansive writing
+                    max_tokens=5000,  # Increased for full article generation
                     response_format={"type": "json_object"}  # Ensure JSON response
                 )
                 
@@ -192,6 +202,13 @@ class AISummaryService:
                 
                 # Validate the response structure
                 required_keys = ['key_insights', 'summary', 'ttps', 'sources']
+                # Timeline is now standard in our richer format
+                if 'timeline' in summary_data:
+                    required_keys.append('timeline')
+                # Entities are now part of our enhanced format
+                if 'entities' in summary_data:
+                    required_keys.append('entities')
+                    
                 if all(key in summary_data for key in required_keys):
                     # Validate key_insights is a list
                     if not isinstance(summary_data['key_insights'], list):
@@ -208,17 +225,35 @@ class AISummaryService:
                         logger.error("sources is not a dict")
                         continue
                     
-                    # Ensure summary is within reasonable limits (150 words ~= 900 chars)
-                    if len(summary_data['summary']) > 1000:
-                        summary_data['summary'] = summary_data['summary'][:997] + "..."
+                    # Validate timeline if present
+                    if 'timeline' in summary_data and not isinstance(summary_data['timeline'], list):
+                        logger.error("timeline is not a list")
+                        continue
                     
-                    # Limit key insights to 5 items
-                    if len(summary_data['key_insights']) > 5:
-                        summary_data['key_insights'] = summary_data['key_insights'][:5]
+                    # Validate entities if present
+                    if 'entities' in summary_data:
+                        if not isinstance(summary_data['entities'], dict):
+                            logger.error("entities is not a dict")
+                            continue
+                        # Validate entity categories
+                        entity_categories = ['technical_indicators', 'threat_intelligence', 'business_intelligence']
+                        for category in entity_categories:
+                            if category in summary_data['entities'] and not isinstance(summary_data['entities'][category], dict):
+                                logger.error(f"entities.{category} is not a dict")
+                                continue
                     
-                    # Limit TTPs to 6 items
-                    if len(summary_data['ttps']) > 6:
-                        summary_data['ttps'] = summary_data['ttps'][:6]
+                    # Apply limits for richer content
+                    # Longer summary (550 words ~= 3300 chars)
+                    if len(summary_data['summary']) > 4000:
+                        summary_data['summary'] = summary_data['summary'][:3997] + "..."
+                    
+                    # Allow more key insights
+                    if len(summary_data['key_insights']) > 6:
+                        summary_data['key_insights'] = summary_data['key_insights'][:6]
+                    
+                    # Allow more TTPs
+                    if len(summary_data['ttps']) > 8:
+                        summary_data['ttps'] = summary_data['ttps'][:8]
                     
                     logger.info("Successfully generated AI summary")
                     return summary_data
@@ -301,6 +336,21 @@ class AISummaryService:
         
         # Save to database
         success = self.save_ai_summary(cluster_id, ai_summary)
+        
+        # Sync extracted entities to database if save was successful
+        if success and 'entities' in ai_summary:
+            try:
+                # First sync entities to the entities table (now async)
+                sync_stats = await self.entity_sync.sync_cluster_entities(cluster_id)
+                logger.info(f"Entity sync for cluster {cluster_id}: {sync_stats}")
+                
+                # Then link entities to the cluster's articles
+                link_stats = self.entity_link.link_cluster_entities(cluster_id)
+                logger.info(f"Entity linking for cluster {cluster_id}: {link_stats}")
+            except Exception as e:
+                logger.error(f"Failed to sync/link entities for cluster {cluster_id}: {e}")
+                # Don't fail the whole process if entity sync fails
+        
         return success
     
     async def process_clusters_batch(self, limit: int = 10, include_updates: bool = True) -> Dict[str, Any]:

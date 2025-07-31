@@ -583,3 +583,61 @@ Entity notifications include:
 The API provides endpoints to manage feed notifications:
 - `PATCH /api/v1/entity-feeds/{feed_id}/notifications` - Toggle notifications for a feed
 - `PUT /api/v1/entity-feeds/{feed_id}` - Update feed including notifications_enabled field
+
+## AI Entity Extraction and Management
+
+The AI entity extraction system dynamically discovers and manages security entities using OpenAI:
+
+### Key Features
+
+- **AI-Powered Extraction**: Uses GPT-4o to extract entities from cluster summaries
+- **Automatic Entity Creation**: Discovered entities are automatically added to the database
+- **Entity Linking**: AI-extracted entities are linked to all articles in their source clusters
+- **Description Generation**: Uses GPT-4o-mini to generate concise descriptions for new entities
+- **Full Integration**: AI entities appear in cluster intelligence views and entity pages
+
+### Components
+
+1. **Entity Extraction in AI Summaries** (`src/ai_summary/prompts.py`)
+   - Extracts technical indicators (CVEs, IPs, domains)
+   - Identifies threat actors (APT groups, ransomware groups)
+   - Discovers business entities (companies, vendors, agencies)
+
+2. **Entity Sync Service** (`src/ai_summary/entity_sync_service.py`)
+   - Syncs AI-extracted entities to the entities table
+   - Assigns appropriate importance weights by category
+   - Tracks new vs existing entities
+
+3. **Entity Link Service** (`src/ai_summary/entity_link_service.py`)
+   - Links AI entities to cluster articles
+   - Merges with existing extracted entities
+   - Maintains extraction metadata
+
+4. **Entity Description Service** (`src/ai_summary/entity_description_service.py`)
+   - Generates 1-2 sentence descriptions using GPT-4o-mini
+   - Category-specific prompt engineering
+   - Batch processing for efficiency
+
+### Running Entity Services
+
+```bash
+# Test entity sync and linking
+python -m test_entity_sync 1450
+
+# Generate descriptions for entities without them
+python -m src.ai_summary.entity_description_scheduler --once
+
+# Run description generation as daemon
+python -m src.ai_summary.entity_description_scheduler --interval 30
+
+# Test full flow (AI summary -> entities -> descriptions)
+python -m test_full_entity_flow
+```
+
+### Entity Flow
+
+1. AI summary generation extracts entities from cluster articles
+2. Entity sync service adds new entities to database
+3. Entity link service connects entities to all cluster articles
+4. Description service generates descriptions for new entities
+5. Entities appear in cluster intelligence and entity pages with full metadata

@@ -1,5 +1,5 @@
 """
-AI Summary Scheduler - Runs hourly to process clusters without AI summaries
+AI Summary Scheduler - Runs AI summary generation with entity sync, linking, and description generation
 """
 import asyncio
 import argparse
@@ -10,6 +10,9 @@ from datetime import datetime
 import time
 
 from .ai_summary_service import AISummaryService
+from .entity_sync_service import EntitySyncService
+from .entity_link_service import EntityLinkService
+from .entity_description_service import EntityDescriptionService
 from src.config.settings import settings
 
 # Configure logging
@@ -28,12 +31,12 @@ logger = logging.getLogger(__name__)
 class AISummaryScheduler:
     """Scheduler for running AI summary generation periodically"""
     
-    def __init__(self, interval_seconds: int = 3600, batch_size: int = 10, include_updates: bool = True):
+    def __init__(self, interval_seconds: int = 600, batch_size: int = 10, include_updates: bool = True):
         """
         Initialize the scheduler.
         
         Args:
-            interval_seconds: Time between runs in seconds (default: 3600 = 1 hour)
+            interval_seconds: Time between runs in seconds (default: 600 = 10 minutes)
             batch_size: Number of clusters to process per run
             include_updates: Whether to regenerate summaries for updated clusters
         """
@@ -41,12 +44,21 @@ class AISummaryScheduler:
         self.batch_size = batch_size
         self.include_updates = include_updates
         self.service = AISummaryService()
+        
+        # Initialize entity services
+        self.entity_sync_service = EntitySyncService()
+        self.entity_link_service = EntityLinkService()
+        self.entity_description_service = EntityDescriptionService()
+        
         self.running = False
         self.total_processed = 0
         self.total_successful = 0
         self.total_failed = 0
         self.total_regenerated = 0
         self.total_new = 0
+        self.entities_synced = 0
+        self.entities_linked = 0
+        self.descriptions_generated = 0
         
     def signal_handler(self, signum, frame):
         """Handle shutdown signals gracefully"""
@@ -54,45 +66,100 @@ class AISummaryScheduler:
         self.running = False
         sys.exit(0)
     
+    async def run_entity_maintenance(self):
+        """Run entity sync, linking, and description generation for recent clusters"""
+        logger.info("Running entity maintenance tasks...")
+        maintenance_stats = {
+            'entities_synced': 0,
+            'entities_linked': 0,
+            'descriptions_generated': 0
+        }
+        
+        try:
+            # 1. Sync entities from recent clusters (last 24 hours)
+            logger.info("Phase 1: Syncing AI-extracted entities...")
+            sync_stats = self.entity_sync_service.sync_all_recent_clusters(hours=24)
+            maintenance_stats['entities_synced'] = sync_stats.get('new', 0)
+            logger.info(f"  - Synced {sync_stats.get('new', 0)} new entities from {sync_stats.get('clusters_processed', 0)} clusters")
+            
+            # 2. Link entities to articles
+            logger.info("Phase 2: Linking entities to articles...")
+            link_stats = self.entity_link_service.link_all_recent_clusters(hours=24)
+            maintenance_stats['entities_linked'] = link_stats.get('entities_linked', 0)
+            logger.info(f"  - Linked {link_stats.get('entities_linked', 0)} entities to {link_stats.get('articles_updated', 0)} articles")
+            
+            # 3. Generate descriptions for new entities
+            logger.info("Phase 3: Generating entity descriptions...")
+            desc_stats = await self.entity_description_service.process_entities_without_descriptions(limit=50)
+            maintenance_stats['descriptions_generated'] = desc_stats.get('updated', 0)
+            logger.info(f"  - Generated descriptions for {desc_stats.get('updated', 0)} entities")
+            
+        except Exception as e:
+            logger.error(f"Error during entity maintenance: {e}", exc_info=True)
+        
+        return maintenance_stats
+
     async def run_once(self):
         """Run the AI summary generation once"""
         logger.info(f"Starting AI summary generation run (batch size: {self.batch_size}, "
                    f"include updates: {self.include_updates})")
         
+        run_stats = {
+            'ai_summary': {},
+            'entity_maintenance': {}
+        }
+        
         try:
+            # Phase 1: Generate AI summaries
+            logger.info("\n=== Phase 1: AI Summary Generation ===")
             results = await self.service.process_clusters_batch(
                 limit=self.batch_size,
                 include_updates=self.include_updates
             )
             
-            # Update totals
-            self.total_processed += results['processed']
-            self.total_successful += results['successful']
-            self.total_failed += results['failed']
-            if self.include_updates:
-                self.total_regenerated += results.get('regenerated', 0)
-                self.total_new += results.get('new', 0)
+            if results:
+                run_stats['ai_summary'] = results
+                
+                # Update totals
+                self.total_processed += results['processed']
+                self.total_successful += results['successful']
+                self.total_failed += results['failed']
+                if self.include_updates:
+                    self.total_regenerated += results.get('regenerated', 0)
+                    self.total_new += results.get('new', 0)
+                
+                logger.info(f"AI summary generation complete: {results['successful']} successful, "
+                           f"{results['failed']} failed, "
+                           f"{results['processing_time_seconds']:.2f} seconds")
+                
+                # Log details for each cluster
+                for cluster_result in results['clusters']:
+                    reason = cluster_result.get('reason', 'new')
+                    if cluster_result['status'] == 'success':
+                        logger.info(f"✓ Cluster {cluster_result['cluster_id']}: "
+                                   f"{cluster_result['cluster_name']} ({reason})")
+                    else:
+                        logger.error(f"✗ Cluster {cluster_result['cluster_id']}: "
+                                    f"{cluster_result['cluster_name']} ({reason}) - "
+                                    f"{cluster_result.get('error', 'Unknown error')}")
             
-            logger.info(f"Run complete: {results['successful']} successful, "
-                       f"{results['failed']} failed, "
-                       f"{results['processing_time_seconds']:.2f} seconds")
+            # Phase 2: Entity maintenance (sync, link, describe)
+            logger.info("\n=== Phase 2: Entity Maintenance ===")
+            maintenance_stats = await self.run_entity_maintenance()
+            run_stats['entity_maintenance'] = maintenance_stats
             
-            if self.include_updates:
-                logger.info(f"  - New summaries: {results.get('new', 0)}")
-                logger.info(f"  - Regenerated: {results.get('regenerated', 0)}")
+            # Update entity stats
+            self.entities_synced += maintenance_stats['entities_synced']
+            self.entities_linked += maintenance_stats['entities_linked']
+            self.descriptions_generated += maintenance_stats['descriptions_generated']
             
-            # Log details for each cluster
-            for cluster_result in results['clusters']:
-                reason = cluster_result.get('reason', 'new')
-                if cluster_result['status'] == 'success':
-                    logger.info(f"✓ Cluster {cluster_result['cluster_id']}: "
-                               f"{cluster_result['cluster_name']} ({reason})")
-                else:
-                    logger.error(f"✗ Cluster {cluster_result['cluster_id']}: "
-                                f"{cluster_result['cluster_name']} ({reason}) - "
-                                f"{cluster_result.get('error', 'Unknown error')}")
+            logger.info("\n=== Run Summary ===")
+            logger.info(f"AI Summaries: {run_stats['ai_summary'].get('successful', 0)} generated")
+            logger.info(f"Entities Synced: {maintenance_stats['entities_synced']}")
+            logger.info(f"Entities Linked: {maintenance_stats['entities_linked']}")
+            logger.info(f"Descriptions Generated: {maintenance_stats['descriptions_generated']}")
             
-            return results
+            return run_stats
             
         except Exception as e:
             logger.error(f"Error during AI summary generation run: {e}", exc_info=True)
@@ -102,6 +169,7 @@ class AISummaryScheduler:
         """Run the scheduler as a daemon, processing clusters every interval"""
         logger.info(f"Starting AI Summary Scheduler daemon (interval: {self.interval_seconds}s)")
         logger.info(f"Batch size: {self.batch_size} clusters per run")
+        logger.info("Entity services: sync, link, and description generation enabled")
         
         # Set up signal handlers
         signal.signal(signal.SIGINT, self.signal_handler)
@@ -112,19 +180,23 @@ class AISummaryScheduler:
         
         while self.running:
             run_count += 1
-            logger.info(f"\n{'='*60}")
+            logger.info(f"\n{'='*80}")
             logger.info(f"Run #{run_count} starting at {datetime.now()}")
-            logger.info(f"Total stats: {self.total_successful} successful, "
+            logger.info("Cumulative Statistics:")
+            logger.info(f"  AI Summaries: {self.total_successful} successful, "
                        f"{self.total_failed} failed, {self.total_processed} processed")
             if self.include_updates:
                 logger.info(f"  - New: {self.total_new}, Regenerated: {self.total_regenerated}")
+            logger.info(f"  Entities: {self.entities_synced} synced, "
+                       f"{self.entities_linked} linked, "
+                       f"{self.descriptions_generated} descriptions")
             
             # Run the generation
             await self.run_once()
             
             # Wait for next run
             if self.running:
-                logger.info(f"Next run in {self.interval_seconds} seconds "
+                logger.info(f"\nNext run in {self.interval_seconds} seconds "
                            f"({self.interval_seconds/60:.1f} minutes)")
                 
                 # Use asyncio.sleep in chunks to allow for graceful shutdown
@@ -140,11 +212,19 @@ class AISummaryScheduler:
         """Get current scheduler status"""
         return {
             'running': self.running,
-            'total_processed': self.total_processed,
-            'total_successful': self.total_successful,
-            'total_failed': self.total_failed,
+            'stats': {
+                'total_processed': self.total_processed,
+                'total_successful': self.total_successful,
+                'total_failed': self.total_failed,
+                'total_regenerated': self.total_regenerated,
+                'total_new': self.total_new,
+                'entities_synced': self.entities_synced,
+                'entities_linked': self.entities_linked,
+                'descriptions_generated': self.descriptions_generated
+            },
             'batch_size': self.batch_size,
-            'interval_seconds': self.interval_seconds
+            'interval_seconds': self.interval_seconds,
+            'include_updates': self.include_updates
         }
 
 
@@ -161,8 +241,8 @@ async def main():
     parser.add_argument(
         '--interval',
         type=int,
-        default=3600,
-        help='Interval between runs in seconds (default: 3600 = 1 hour)'
+        default=600,
+        help='Interval between runs in seconds (default: 600 = 10 minutes)'
     )
     parser.add_argument(
         '--batch-size',
@@ -180,6 +260,11 @@ async def main():
         action='store_true',
         help='Only process new clusters, skip regeneration of updated clusters'
     )
+    parser.add_argument(
+        '--entity-only',
+        action='store_true',
+        help='Only run entity maintenance tasks (skip AI summary generation)'
+    )
     
     args = parser.parse_args()
     
@@ -194,6 +279,12 @@ async def main():
         batch_size=args.batch_size,
         include_updates=not args.no_updates
     )
+    
+    # Run entity maintenance only if requested
+    if args.entity_only:
+        logger.info("Running entity maintenance only")
+        await scheduler.run_entity_maintenance()
+        return
     
     # Run once or as daemon
     if args.once:
