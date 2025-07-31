@@ -71,7 +71,6 @@ class EntityDescriptionService:
                     {"role": "system", "content": "You are a cybersecurity expert writing concise, factual descriptions. Use web search to verify entity information and ensure accuracy. Avoid false positives by confirming entities exist and are correctly categorized. Keep descriptions to 1-2 sentences maximum. Be specific and technical but clear. If an entity seems suspicious or potentially misidentified, verify it through web search before generating a description."},
                     {"role": "user", "content": prompt}
                 ],
-                temperature=0.3,  # Lower temperature for consistent, factual descriptions
                 max_tokens=100
             )
             
