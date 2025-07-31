@@ -5,6 +5,7 @@ import os
 import logging
 import asyncio
 import json
+import re
 from typing import Dict, List, Optional
 from openai import AsyncOpenAI
 import psycopg2
@@ -75,6 +76,14 @@ class EntityDescriptionService:
             )
             
             description = response.choices[0].message.content.strip()
+            
+            # Remove URL citations that the search model might include
+            # Pattern matches markdown links like ([domain](url)) or just (url)
+            description = re.sub(r'\s*\([^\)]*(?:https?://|www\.)[^\)]*\)', '', description)
+            description = re.sub(r'\s*\[[^\]]*\]\([^\)]*\)', '', description)
+            
+            # Clean up any double spaces left after removal
+            description = re.sub(r'\s+', ' ', description).strip()
             
             # Ensure description isn't too long
             if len(description) > 500:
