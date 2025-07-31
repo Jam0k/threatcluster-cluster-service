@@ -85,6 +85,17 @@ class EntityDescriptionService:
             # Clean up any double spaces left after removal
             description = re.sub(r'\s+', ' ', description).strip()
             
+            # Remove any trailing unmatched closing parentheses or brackets
+            # Count opening and closing parentheses/brackets
+            open_count = description.count('(')
+            close_count = description.count(')')
+            if close_count > open_count:
+                # Remove trailing closing parentheses if unmatched
+                description = description.rstrip(')')
+            
+            # Clean up any trailing punctuation followed by parentheses
+            description = re.sub(r'\.\)$', '.', description)
+            
             # Ensure description isn't too long
             if len(description) > 500:
                 description = description[:497] + "..."
