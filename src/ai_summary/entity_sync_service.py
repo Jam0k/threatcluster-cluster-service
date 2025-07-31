@@ -133,27 +133,40 @@ class EntitySyncService:
             with conn.cursor() as cur:
                 for entity_name, category in entities:
                     try:
-                        # Try to insert the entity
+                        # First check if entity exists (case-insensitive)
                         cur.execute("""
-                            INSERT INTO cluster_data.entities 
-                            (entities_name, entities_category, entities_source, entities_importance_weight)
-                            VALUES (%s, %s, 'ai_extracted', %s)
-                            ON CONFLICT (entities_name, entities_category) 
-                            DO NOTHING
-                            RETURNING entities_id
-                        """, (
-                            entity_name, 
-                            category, 
-                            self.DEFAULT_WEIGHTS.get(category, 50)
-                        ))
+                            SELECT entities_id, entities_name 
+                            FROM cluster_data.entities 
+                            WHERE LOWER(entities_name) = LOWER(%s) 
+                            AND entities_category = %s
+                            LIMIT 1
+                        """, (entity_name, category))
                         
-                        result = cur.fetchone()
-                        if result:
-                            stats['new'] += 1
-                            stats['new_entity_ids'].append(result[0])
-                            logger.info(f"Added new entity: {entity_name} ({category})")
-                        else:
+                        existing = cur.fetchone()
+                        
+                        if existing:
                             stats['existing'] += 1
+                            # Log if case differs
+                            if existing[1] != entity_name:
+                                logger.debug(f"Entity exists with different case: '{entity_name}' -> '{existing[1]}' ({category})")
+                        else:
+                            # Insert new entity
+                            cur.execute("""
+                                INSERT INTO cluster_data.entities 
+                                (entities_name, entities_category, entities_source, entities_importance_weight)
+                                VALUES (%s, %s, 'ai_extracted', %s)
+                                RETURNING entities_id
+                            """, (
+                                entity_name, 
+                                category, 
+                                self.DEFAULT_WEIGHTS.get(category, 50)
+                            ))
+                            
+                            result = cur.fetchone()
+                            if result:
+                                stats['new'] += 1
+                                stats['new_entity_ids'].append(result[0])
+                                logger.info(f"Added new entity: {entity_name} ({category})")
                             
                     except Exception as e:
                         logger.error(f"Error inserting entity {entity_name} ({category}): {e}")
