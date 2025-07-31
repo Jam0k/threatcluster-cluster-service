@@ -46,30 +46,30 @@ class EntityDescriptionService:
             
         # Create category-specific prompts
         category_prompts = {
-            'platform': f"First, use web search to verify that {entity_name} is indeed a technology platform or operating system. Then write a 1-2 sentence technical description focusing on what it is and its primary purpose. If it doesn't exist or is misidentified, say so.",
-            'company': f"First, use web search to verify that {entity_name} is a legitimate company in the technology/security industry. Then write a 1-2 sentence description including what they do and their role. If it doesn't exist or is misidentified, say so.",
-            'attack_type': f"First, use web search to verify that {entity_name} is a recognized attack technique. Then write a 1-2 sentence technical description explaining what it does and how it works. If it's not a real attack technique, say so.",
-            'vulnerability_type': f"First, use web search to verify that {entity_name} is a legitimate vulnerability type. Then write a 1-2 sentence description explaining what kind of security issue it represents. If it's not a real vulnerability type, say so.",
-            'mitre': f"First, use web search to verify that {entity_name} is a valid MITRE ATT&CK technique. Then write a 1-2 sentence description including what attackers use it for. If it's not a valid MITRE technique, say so.",
-            'apt_group': f"First, use web search to verify that {entity_name} is a known threat actor/APT group. Then write a 1-2 sentence description including their typical targets or activities. If it's not a real APT group, say so.",
-            'ransomware_group': f"First, use web search to verify that {entity_name} is an actual ransomware group. Then write a 1-2 sentence description including their typical tactics or targets. If it's not a real ransomware group, say so.",
-            'malware_family': f"First, use web search to verify that {entity_name} is a recognized malware family. Then write a 1-2 sentence description including its primary function or impact. If it's not real malware, say so.",
-            'security_vendor': f"First, use web search to verify that {entity_name} is a legitimate security vendor. Then write a 1-2 sentence description including their main products or services. If it's not a real security vendor, say so.",
-            'government_agency': f"First, use web search to verify that {entity_name} is a real government agency involved in cybersecurity or technology. Then write a 1-2 sentence description of their role. If it's not a real agency, say so.",
-            'country': f"First, verify {entity_name} is a valid country name. Then write a 1-2 sentence description focusing on its role or significance in cybersecurity context. If it's not a real country, say so.",
-            'industry_sector': f"First, use web search to verify that {entity_name} is a legitimate industry sector. Then write a 1-2 sentence description of its relevance to cybersecurity. If it's not a real industry sector, say so.",
-            'security_standard': f"First, use web search to verify that {entity_name} is a recognized security standard or framework. Then write a 1-2 sentence description including its purpose. If it's not a real standard, say so."
+            'platform': f"Use web search to verify {entity_name} exists, then write a 1-2 sentence description of what it is and its primary purpose.",
+            'company': f"Use web search to verify {entity_name} exists, then write a 1-2 sentence description of what the company does.",
+            'attack_type': f"Use web search to verify {entity_name} is a real attack technique, then write a 1-2 sentence description of how it works.",
+            'vulnerability_type': f"Use web search to verify {entity_name} exists, then write a 1-2 sentence description of what type of vulnerability it is.",
+            'mitre': f"Use web search to verify {entity_name} is a valid MITRE ATT&CK technique, then write a 1-2 sentence description of what it does.",
+            'apt_group': f"Use web search to verify {entity_name} is a known threat actor group, then write a 1-2 sentence description of their activities.",
+            'ransomware_group': f"Use web search to verify {entity_name} is a real ransomware group, then write a 1-2 sentence description of their operations.",
+            'malware_family': f"Use web search to verify {entity_name} is real malware, then write a 1-2 sentence description of what it does.",
+            'security_vendor': f"Use web search to verify {entity_name} exists, then write a 1-2 sentence description of their products or services.",
+            'government_agency': f"Use web search to verify {entity_name} exists, then write a 1-2 sentence description of what the agency does.",
+            'country': f"Write a 1-2 sentence description of {entity_name} as a country.",
+            'industry_sector': f"Write a 1-2 sentence description of the {entity_name} industry sector.",
+            'security_standard': f"Use web search to verify {entity_name} exists, then write a 1-2 sentence description of what the standard covers."
         }
         
         prompt = category_prompts.get(entity_category, 
-            f"First, use web search to verify that {entity_name} is a legitimate entity in the cybersecurity context. Then write a 1-2 sentence description. If it seems to be a false positive or misidentified, say so."
+            f"Use web search to verify {entity_name} exists, then write a 1-2 sentence description of what it is."
         )
         
         try:
             response = await self.client.chat.completions.create(
                 model=self.model,
                 messages=[
-                    {"role": "system", "content": "You are a cybersecurity expert writing concise, factual descriptions. Use web search to verify entity information and ensure accuracy. Avoid false positives by confirming entities exist and are correctly categorized. Keep descriptions to 1-2 sentences maximum. Be specific and technical but clear. If an entity seems suspicious or potentially misidentified, verify it through web search before generating a description."},
+                    {"role": "system", "content": "You are an expert writer creating concise, factual descriptions. Use web search to verify information and ensure accuracy. Keep descriptions to 1-2 sentences maximum. Focus on what the entity is and what it does. Be clear and direct."},
                     {"role": "user", "content": prompt}
                 ],
                 max_tokens=100
