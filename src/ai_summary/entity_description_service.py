@@ -158,15 +158,21 @@ class EntityDescriptionService:
                             }
                         }
                         
-                        # Update entity
+                        # Update entity only if it doesn't already have a description
                         cur.execute("""
                             UPDATE cluster_data.entities
                             SET entities_json = %s
                             WHERE entities_name = %s 
                             AND entities_category = %s
                             AND entities_source = 'ai_extracted'
-                            AND entities_json IS NULL
-                        """, (json.dumps(entities_json), name, category))
+                            AND (
+                                entities_json IS NULL 
+                                OR NOT (entities_json::jsonb ? %s)
+                                OR NOT (entities_json::jsonb -> %s -> 'basic_info' ? 'description')
+                                OR (entities_json::jsonb -> %s -> 'basic_info' ->> 'description') IS NULL
+                                OR (entities_json::jsonb -> %s -> 'basic_info' ->> 'description') = ''
+                            )
+                        """, (json.dumps(entities_json), name, category, category, category, category, category))
                         
                         if cur.rowcount > 0:
                             stats['updated'] += 1
@@ -207,8 +213,14 @@ class EntityDescriptionService:
                         entities_category
                     FROM cluster_data.entities
                     WHERE entities_source = 'ai_extracted'
-                    AND entities_json IS NULL
                     AND entities_category NOT IN ('cve', 'domain', 'ip_address', 'file_hash')
+                    AND (
+                        entities_json IS NULL 
+                        OR NOT (entities_json::jsonb ? entities_category)
+                        OR NOT (entities_json::jsonb -> entities_category -> 'basic_info' ? 'description')
+                        OR (entities_json::jsonb -> entities_category -> 'basic_info' ->> 'description') IS NULL
+                        OR (entities_json::jsonb -> entities_category -> 'basic_info' ->> 'description') = ''
+                    )
                     ORDER BY entities_added_on DESC
                     LIMIT %s
                 """, (limit,))
