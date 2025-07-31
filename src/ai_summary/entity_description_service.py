@@ -85,16 +85,32 @@ class EntityDescriptionService:
             # Clean up any double spaces left after removal
             description = re.sub(r'\s+', ' ', description).strip()
             
-            # Remove any trailing unmatched closing parentheses or brackets
-            # Count opening and closing parentheses/brackets
-            open_count = description.count('(')
-            close_count = description.count(')')
-            if close_count > open_count:
-                # Remove trailing closing parentheses if unmatched
-                description = description.rstrip(')')
+            # Remove unmatched closing parentheses
+            # This handles cases where AI adds random closing parentheses
+            def remove_unmatched_parens(text):
+                """Remove closing parentheses that don't have matching opening ones"""
+                paren_count = 0
+                result = []
+                
+                for char in text:
+                    if char == '(':
+                        paren_count += 1
+                        result.append(char)
+                    elif char == ')':
+                        if paren_count > 0:
+                            paren_count -= 1
+                            result.append(char)
+                        # Skip unmatched closing parentheses
+                    else:
+                        result.append(char)
+                
+                return ''.join(result)
             
-            # Clean up any trailing punctuation followed by parentheses
-            description = re.sub(r'\.\)$', '.', description)
+            description = remove_unmatched_parens(description)
+            
+            # Clean up any trailing punctuation oddities
+            description = re.sub(r'\.\s*\.$', '.', description)  # Remove double periods
+            description = description.strip()
             
             # Ensure description isn't too long
             if len(description) > 500:
