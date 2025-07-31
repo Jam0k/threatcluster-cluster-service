@@ -25,7 +25,7 @@ class EntityDescriptionService:
             raise ValueError("OPENAI_API_KEY environment variable is not set")
         
         self.client = AsyncOpenAI(api_key=self.openai_api_key)
-        self.model = "gpt-4o-mini"  # Using lighter model for simple descriptions
+        self.model = "gpt-4o-mini-search-preview"  # Using search-enabled model for accurate verification
         
     async def generate_entity_description(self, entity_name: str, entity_category: str) -> Optional[str]:
         """
@@ -45,30 +45,30 @@ class EntityDescriptionService:
             
         # Create category-specific prompts
         category_prompts = {
-            'platform': f"Write a 1-2 sentence technical description of {entity_name} as a technology platform or operating system. Focus on what it is and its primary purpose.",
-            'company': f"Write a 1-2 sentence description of {entity_name} as a company. Include what they do and their role in the technology/security industry.",
-            'attack_type': f"Write a 1-2 sentence technical description of the {entity_name} attack technique. Explain what it does and how it works.",
-            'vulnerability_type': f"Write a 1-2 sentence description of {entity_name} as a vulnerability type. Explain what kind of security issue it represents.",
-            'mitre': f"Write a 1-2 sentence description of MITRE ATT&CK technique {entity_name}. Include what attackers use it for.",
-            'apt_group': f"Write a 1-2 sentence description of {entity_name} as a threat actor group. Include their typical targets or activities if known.",
-            'ransomware_group': f"Write a 1-2 sentence description of {entity_name} as a ransomware group. Include their typical tactics or targets.",
-            'malware_family': f"Write a 1-2 sentence description of {entity_name} malware. Include its primary function or impact.",
-            'security_vendor': f"Write a 1-2 sentence description of {entity_name} as a security vendor. Include their main products or services.",
-            'government_agency': f"Write a 1-2 sentence description of {entity_name} as a government agency. Include their role in cybersecurity or technology.",
-            'country': f"Write a 1-2 sentence description focusing on {entity_name}'s role or significance in cybersecurity context.",
-            'industry_sector': f"Write a 1-2 sentence description of the {entity_name} industry sector and its relevance to cybersecurity.",
-            'security_standard': f"Write a 1-2 sentence description of {entity_name} as a security standard or framework. Include its purpose."
+            'platform': f"First, use web search to verify that {entity_name} is indeed a technology platform or operating system. Then write a 1-2 sentence technical description focusing on what it is and its primary purpose. If it doesn't exist or is misidentified, say so.",
+            'company': f"First, use web search to verify that {entity_name} is a legitimate company in the technology/security industry. Then write a 1-2 sentence description including what they do and their role. If it doesn't exist or is misidentified, say so.",
+            'attack_type': f"First, use web search to verify that {entity_name} is a recognized attack technique. Then write a 1-2 sentence technical description explaining what it does and how it works. If it's not a real attack technique, say so.",
+            'vulnerability_type': f"First, use web search to verify that {entity_name} is a legitimate vulnerability type. Then write a 1-2 sentence description explaining what kind of security issue it represents. If it's not a real vulnerability type, say so.",
+            'mitre': f"First, use web search to verify that {entity_name} is a valid MITRE ATT&CK technique. Then write a 1-2 sentence description including what attackers use it for. If it's not a valid MITRE technique, say so.",
+            'apt_group': f"First, use web search to verify that {entity_name} is a known threat actor/APT group. Then write a 1-2 sentence description including their typical targets or activities. If it's not a real APT group, say so.",
+            'ransomware_group': f"First, use web search to verify that {entity_name} is an actual ransomware group. Then write a 1-2 sentence description including their typical tactics or targets. If it's not a real ransomware group, say so.",
+            'malware_family': f"First, use web search to verify that {entity_name} is a recognized malware family. Then write a 1-2 sentence description including its primary function or impact. If it's not real malware, say so.",
+            'security_vendor': f"First, use web search to verify that {entity_name} is a legitimate security vendor. Then write a 1-2 sentence description including their main products or services. If it's not a real security vendor, say so.",
+            'government_agency': f"First, use web search to verify that {entity_name} is a real government agency involved in cybersecurity or technology. Then write a 1-2 sentence description of their role. If it's not a real agency, say so.",
+            'country': f"First, verify {entity_name} is a valid country name. Then write a 1-2 sentence description focusing on its role or significance in cybersecurity context. If it's not a real country, say so.",
+            'industry_sector': f"First, use web search to verify that {entity_name} is a legitimate industry sector. Then write a 1-2 sentence description of its relevance to cybersecurity. If it's not a real industry sector, say so.",
+            'security_standard': f"First, use web search to verify that {entity_name} is a recognized security standard or framework. Then write a 1-2 sentence description including its purpose. If it's not a real standard, say so."
         }
         
         prompt = category_prompts.get(entity_category, 
-            f"Write a 1-2 sentence description of {entity_name} in the context of cybersecurity."
+            f"First, use web search to verify that {entity_name} is a legitimate entity in the cybersecurity context. Then write a 1-2 sentence description. If it seems to be a false positive or misidentified, say so."
         )
         
         try:
             response = await self.client.chat.completions.create(
                 model=self.model,
                 messages=[
-                    {"role": "system", "content": "You are a cybersecurity expert writing concise, factual descriptions. Keep descriptions to 1-2 sentences maximum. Be specific and technical but clear."},
+                    {"role": "system", "content": "You are a cybersecurity expert writing concise, factual descriptions. Use web search to verify entity information and ensure accuracy. Avoid false positives by confirming entities exist and are correctly categorized. Keep descriptions to 1-2 sentences maximum. Be specific and technical but clear. If an entity seems suspicious or potentially misidentified, verify it through web search before generating a description."},
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.3,  # Lower temperature for consistent, factual descriptions
