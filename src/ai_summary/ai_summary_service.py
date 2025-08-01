@@ -29,7 +29,7 @@ class AISummaryService:
             raise ValueError("OPENAI_API_KEY environment variable is not set")
         
         self.client = AsyncOpenAI(api_key=self.openai_api_key)
-        self.model = "gpt-4o"  # Using GPT-4o for better content generation
+        self.model = "gpt-4o-mini"  # Using GPT-4o-mini for cost-effective content generation
         self.max_retries = 3
         self.retry_delay = 2  # seconds
         self.entity_sync = EntitySyncService()  # Initialize entity sync service
