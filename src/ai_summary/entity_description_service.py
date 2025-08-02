@@ -19,6 +19,12 @@ logger = logging.getLogger(__name__)
 class EntityDescriptionService:
     """Service for generating descriptions for AI-extracted entities"""
     
+    # Categories that require web search for verification
+    SEARCH_REQUIRED_CATEGORIES = {
+        'apt_group', 'ransomware_group', 'malware_family', 
+        'company', 'security_vendor', 'platform'
+    }
+    
     def __init__(self):
         """Initialize the Entity Description Service"""
         self.openai_api_key = os.getenv('OPENAI_API_KEY')
@@ -26,7 +32,8 @@ class EntityDescriptionService:
             raise ValueError("OPENAI_API_KEY environment variable is not set")
         
         self.client = AsyncOpenAI(api_key=self.openai_api_key)
-        self.model = "gpt-4o-mini-search-preview"  # Using search-enabled model for accurate verification
+        self.search_model = "gpt-4o-mini-search-preview"  # For categories requiring verification
+        self.standard_model = "gpt-4o-mini"  # For well-defined categories
         
     async def generate_entity_description(self, entity_name: str, entity_category: str) -> Optional[str]:
         """
@@ -44,32 +51,51 @@ class EntityDescriptionService:
         if entity_category in skip_categories:
             return None
             
-        # Create category-specific prompts
-        category_prompts = {
-            'platform': f"Use web search to verify {entity_name} exists, then write a 1-2 sentence description of what it is and its primary purpose.",
-            'company': f"Use web search to verify {entity_name} exists, then write a 1-2 sentence description of what the company does.",
-            'attack_type': f"Use web search to verify {entity_name} is a real attack technique, then write a 1-2 sentence description of how it works.",
-            'vulnerability_type': f"Use web search to verify {entity_name} exists, then write a 1-2 sentence description of what type of vulnerability it is.",
-            'mitre': f"Use web search to verify {entity_name} is a valid MITRE ATT&CK technique, then write a 1-2 sentence description of what it does.",
-            'apt_group': f"Use web search to verify {entity_name} is a known threat actor group, then write a 1-2 sentence description of their activities.",
-            'ransomware_group': f"Use web search to verify {entity_name} is a real ransomware group, then write a 1-2 sentence description of their operations.",
-            'malware_family': f"Use web search to verify {entity_name} is real malware, then write a 1-2 sentence description of what it does.",
-            'security_vendor': f"Use web search to verify {entity_name} exists, then write a 1-2 sentence description of their products or services.",
-            'government_agency': f"Use web search to verify {entity_name} exists, then write a 1-2 sentence description of what the agency does.",
-            'country': f"Write a 1-2 sentence description of {entity_name} as a country.",
-            'industry_sector': f"Write a 1-2 sentence description of the {entity_name} industry sector.",
-            'security_standard': f"Use web search to verify {entity_name} exists, then write a 1-2 sentence description of what the standard covers."
-        }
+        # Determine if this category requires web search
+        use_search = entity_category in self.SEARCH_REQUIRED_CATEGORIES
+        model = self.search_model if use_search else self.standard_model
         
-        prompt = category_prompts.get(entity_category, 
-            f"Use web search to verify {entity_name} exists, then write a 1-2 sentence description of what it is."
-        )
+        # Create category-specific prompts
+        if use_search:
+            # Prompts for categories that need web search verification
+            category_prompts = {
+                'platform': f"Use web search to verify {entity_name} exists, then write a 1-2 sentence description of what it is and its primary purpose.",
+                'company': f"Use web search to verify {entity_name} exists, then write a 1-2 sentence description of what the company does.",
+                'apt_group': f"Use web search to verify {entity_name} is a known threat actor group, then write a 1-2 sentence description of their activities.",
+                'ransomware_group': f"Use web search to verify {entity_name} is a real ransomware group, then write a 1-2 sentence description of their operations.",
+                'malware_family': f"Use web search to verify {entity_name} is real malware, then write a 1-2 sentence description of what it does.",
+                'security_vendor': f"Use web search to verify {entity_name} exists, then write a 1-2 sentence description of their products or services.",
+            }
+            default_prompt = f"Use web search to verify {entity_name} exists, then write a 1-2 sentence description of what it is."
+        else:
+            # Prompts for well-defined categories that don't need search
+            category_prompts = {
+                'attack_type': f"Write a 1-2 sentence description of the {entity_name} attack technique and how it works.",
+                'vulnerability_type': f"Write a 1-2 sentence description of what type of vulnerability {entity_name} is.",
+                'mitre': f"Write a 1-2 sentence description of the MITRE ATT&CK technique {entity_name} and what it does.",
+                'government_agency': f"Write a 1-2 sentence description of what {entity_name} does as a government agency.",
+                'country': f"Write a 1-2 sentence description of {entity_name} as a country.",
+                'industry_sector': f"Write a 1-2 sentence description of the {entity_name} industry sector.",
+                'security_standard': f"Write a 1-2 sentence description of what the {entity_name} security standard covers."
+            }
+            default_prompt = f"Write a 1-2 sentence description of what {entity_name} is."
+        
+        prompt = category_prompts.get(entity_category, default_prompt)
+        
+        # Log which model is being used
+        logger.debug(f"Generating description for {entity_name} ({entity_category}) using {model}")
         
         try:
+            # Adjust system message based on whether we're using search
+            if use_search:
+                system_message = "You are an expert writer creating concise, factual descriptions. Use web search to verify information and ensure accuracy. Keep descriptions to 1-2 sentences maximum. Focus on what the entity is and what it does. Be clear and direct."
+            else:
+                system_message = "You are an expert writer creating concise, factual descriptions based on your knowledge. Keep descriptions to 1-2 sentences maximum. Focus on what the entity is and what it does. Be clear and direct."
+            
             response = await self.client.chat.completions.create(
-                model=self.model,
+                model=model,
                 messages=[
-                    {"role": "system", "content": "You are an expert writer creating concise, factual descriptions. Use web search to verify information and ensure accuracy. Keep descriptions to 1-2 sentences maximum. Focus on what the entity is and what it does. Be clear and direct."},
+                    {"role": "system", "content": system_message},
                     {"role": "user", "content": prompt}
                 ],
                 max_tokens=100
@@ -267,6 +293,12 @@ class EntityDescriptionService:
                     return {'processed': 0, 'updated': 0, 'errors': 0}
                 
                 logger.info(f"Found {len(entities)} entities needing descriptions")
+                
+                # Count how many will use search vs standard model
+                search_count = sum(1 for e in entities if e['entities_category'] in self.SEARCH_REQUIRED_CATEGORIES)
+                standard_count = len(entities) - search_count
+                logger.info(f"  - {search_count} will use search model (${search_count * 0.02:.2f} estimated)")
+                logger.info(f"  - {standard_count} will use standard model (${standard_count * 0.0001:.2f} estimated)")
                 
                 # Prepare entity list
                 entity_list = [
